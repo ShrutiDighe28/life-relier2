@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import LogoBrand from "@/components/LogoBrand";
 
 export default function WelcomeScreen() {
     const router = useRouter();
@@ -17,7 +18,7 @@ export default function WelcomeScreen() {
     return (
         <View style={styles.container}>
             <ImageBackground
-                source={require("@/assets/images/welcomescreen.png")}
+                source={require("@/assets/images/auth/welcomescreen.png")}
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
@@ -25,11 +26,7 @@ export default function WelcomeScreen() {
 
                     {/* Header */}
                     <View style={styles.headerContainer}>
-                        <Image
-                            source={require("@/assets/images/life_relier_logo.png")}
-                            style={styles.logo}
-                            resizeMode="contain"
-                        />
+                        <LogoBrand size={40} fontSize={26} centered />
                     </View>
 
                     {/* Spacer */}

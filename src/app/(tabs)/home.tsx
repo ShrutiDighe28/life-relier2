@@ -1,23 +1,31 @@
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "@/utils/themeManager";
 
-import Header from "@/components/dashboard/Header";
-import Greeting from "@/components/dashboard/Greeting";
-import AIAssistantCard from "@/components/dashboard/AIAssistantCard";
-import HealthScoreCard from "@/components/dashboard/HealthScoreCard";
-import QuickStats from "@/components/dashboard/QuickStats";
-import AppointmentCard from "@/components/dashboard/AppointmentCard";
-import RecentReportCard from "@/components/dashboard/RecentReportCard";
-import HealthInsights from "@/components/dashboard/HealthInsights";
-import EmergencyBanner from "@/components/dashboard/EmergencyBanner";
-
+import {
+    Header,
+    Greeting,
+    AIAssistantCard,
+    HealthScore,
+    QuickStats,
+    AppointmentCard,
+    RecentReportCard,
+    HealthInsights,
+    EmergencyBanner,
+} from "@/components/dashboard";
 export default function HomeScreen() {
+    const { colors } = useTheme();
+
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView
+            style={[styles.container, { backgroundColor: colors.background }]}
+            edges={["top"]}
+        >
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.content}
+                style={{ backgroundColor: colors.background }}
             >
                 <Header />
 
@@ -29,7 +37,7 @@ export default function HomeScreen() {
 
                 <AIAssistantCard />
 
-                <HealthScoreCard />
+                <HealthScore />
 
                 <QuickStats />
 

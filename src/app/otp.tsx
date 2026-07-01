@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
+import LogoBrand from "@/components/LogoBrand";
 
 export default function OtpScreen() {
     const router = useRouter();
@@ -126,10 +127,7 @@ export default function OtpScreen() {
 
                 {/* Logo */}
 
-                <Image
-                    source={require("@/assets/images/life_relier_logo.png")}
-                    style={styles.logo}
-                />
+                <LogoBrand size={40} fontSize={28} style={{ marginTop: 24 }} centered />
 
                 <Text style={styles.subtitle}>
                     Healthcare Platform
@@ -142,8 +140,7 @@ export default function OtpScreen() {
                 </Text>
 
                 <Text style={styles.description}>
-                    We've sent a 6-digit verification{"\n"}
-                    code to your registered email/mobile.
+                    {"We've sent a 6-digit verification\ncode to your registered email/mobile."}
                 </Text>
 
                 {/* OTP Boxes */}
