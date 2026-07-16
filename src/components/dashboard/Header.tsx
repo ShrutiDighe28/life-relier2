@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Image, TouchableOpacity, Text, StyleSheet, Animated, TextInput } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/utils/themeManager";
+import { useNotifications } from "@/context/NotificationsContext";
 import LogoBrand from "@/components/LogoBrand";
 import { useRouter } from "expo-router";
 
@@ -28,11 +30,13 @@ export default function Header({
     showFilterButton = false,
     onFilterPress,
     showNotificationButton = true,
-    showProfileButton = true,
+    showProfileButton = false,
 }: HeaderProps) {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const fadeAnim = useMemo(() => new Animated.Value(0), []);
     const { colors, isDark, toggleTheme } = useTheme();
+    const { unreadCount } = useNotifications();
     const [searchActive, setSearchActive] = useState(false);
 
     useEffect(() => {
@@ -51,10 +55,16 @@ export default function Header({
         <Animated.View
             style={[
                 styles.header,
-                { opacity: fadeAnim, backgroundColor: colors.background, borderBottomColor: colors.divider },
+                {
+                    opacity: fadeAnim,
+                    backgroundColor: colors.background,
+                    borderBottomColor: colors.divider,
+                    paddingTop: 6,
+                    minHeight: 48,
+                },
             ]}
         >
-            {/* Left Section: Back Button + Logo/Title */}
+            {/* Left Section: Back Button + Logo/Title or Search Row */}
             <View style={styles.leftSection}>
                 {showBackButton && !searchActive && (
                     <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -66,7 +76,7 @@ export default function Header({
                     </TouchableOpacity>
                 )}
 
-                {!searchActive && (
+                {!searchActive ? (
                     <>
                         {title ? (
                             <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -76,19 +86,63 @@ export default function Header({
                             <LogoBrand size={32} fontSize={22} />
                         )}
                     </>
-                )}
-
-                {/* Inline Search Bar (when active) */}
-                {searchActive && (
-                    <View style={[styles.searchContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, borderWidth: 1 }]}>
-                        <TextInput
-                            style={[styles.searchInput, { color: colors.text }]}
-                            placeholder="Search reports..."
-                            placeholderTextColor={colors.textSecondary}
-                            value={searchQuery}
-                            onChangeText={onSearchQueryChange}
-                            autoFocus
-                        />
+                ) : (
+                    /* Search input + Filter button adjacent row */
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                        <View
+                            style={[
+                                styles.searchContainer,
+                                {
+                                    backgroundColor: colors.inputBg,
+                                    borderColor: colors.inputBorder,
+                                    borderWidth: 1,
+                                    flex: 1,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    paddingHorizontal: 12,
+                                    borderRadius: 12,
+                                    height: 40,
+                                },
+                            ]}
+                        >
+                            <MaterialCommunityIcons
+                                name="magnify"
+                                size={20}
+                                color={colors.textSecondary}
+                                style={{ marginRight: 6 }}
+                            />
+                            <TextInput
+                                style={[styles.searchInput, { color: colors.text, flex: 1 }]}
+                                placeholder="Search reports..."
+                                placeholderTextColor={colors.textSecondary}
+                                value={searchQuery}
+                                onChangeText={onSearchQueryChange}
+                                autoFocus
+                            />
+                        </View>
+                        {showFilterButton && (
+                            <TouchableOpacity
+                                style={{
+                                    marginLeft: 10,
+                                    padding: 8,
+                                    backgroundColor: colors.inputBg,
+                                    borderColor: colors.inputBorder,
+                                    borderWidth: 1,
+                                    borderRadius: 12,
+                                    height: 40,
+                                    width: 40,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                                onPress={onFilterPress}
+                            >
+                                <MaterialCommunityIcons
+                                    name="filter-variant"
+                                    size={20}
+                                    color={colors.text}
+                                />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 )}
             </View>
@@ -97,7 +151,7 @@ export default function Header({
             <View style={styles.rightContainer}>
                 {showSearchButton && (
                     <TouchableOpacity
-                        style={styles.iconButton}
+                        style={[styles.iconButton, searchActive && { marginRight: 0 }]}
                         onPress={() => {
                             const nextState = !searchActive;
                             setSearchActive(nextState);
@@ -140,18 +194,20 @@ export default function Header({
 
                 {showNotificationButton && !searchActive && (
                     <TouchableOpacity
-                        style={styles.notification}
+                        style={[styles.iconButton, { position: "relative" }]}
                         activeOpacity={0.7}
-                        onPress={() => console.log("Navigate to Notifications")}
+                        onPress={() => router.push("/settings/notifications")}
                     >
                         <MaterialCommunityIcons
                             name="bell-outline"
-                            size={26}
+                            size={24}
                             color={colors.text}
                         />
-                        <View style={[styles.badge, { borderColor: colors.background }]}>
-                            <Text style={styles.badgeText}>3</Text>
-                        </View>
+                        {unreadCount > 0 && (
+                            <View style={[styles.badge, { borderColor: colors.background }]}>
+                                <Text style={styles.badgeText}>{unreadCount}</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
                 )}
 
@@ -176,8 +232,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingHorizontal: 20,
-        height: 70,
+        paddingLeft: 20,
+        paddingRight: 16,
+        paddingBottom: 8,
         borderBottomWidth: 1,
     },
     leftSection: {
@@ -210,11 +267,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     iconButton: {
-        marginRight: 16,
+        marginLeft: 16, // Change to marginLeft to space them uniformly from the left
         padding: 4,
     },
     notification: {
-        marginRight: 16,
+        marginLeft: 16,
         position: "relative",
     },
     badge: {
@@ -238,5 +295,6 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
+        marginLeft: 16,
     },
 });

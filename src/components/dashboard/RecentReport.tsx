@@ -7,6 +7,7 @@ import {
     Image,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/utils/themeManager";
 
 const reports = [
@@ -28,6 +29,7 @@ const reports = [
 
 export default function RecentReportCard() {
     const { colors, isDark } = useTheme();
+    const router = useRouter();
 
     return (
         <View style={styles.container}>
@@ -40,7 +42,7 @@ export default function RecentReportCard() {
                     Recent Reports
                 </Text>
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/(tabs)/reports")}>
                     <Text style={styles.viewAll}>
                         View All
                     </Text>
@@ -54,6 +56,7 @@ export default function RecentReportCard() {
                     key={item.id}
                     activeOpacity={0.9}
                     style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: isDark ? 1 : 0 }]}
+                    onPress={() => router.push(`/reports/report-details?id=${item.id === 1 ? "cbc" : "lipid"}`)}
                 >
 
                     <Image

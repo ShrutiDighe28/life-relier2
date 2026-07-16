@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 interface SleepRecord {
     hours: number;
@@ -17,6 +18,8 @@ interface SleepRecord {
 }
 
 export default function SleepScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
 
     const [hours, setHours] = useState("7.5");
@@ -56,7 +59,7 @@ export default function SleepScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Sleep Optimizer</Text>
                 <View style={{ width: 38 }} />
@@ -144,7 +147,7 @@ export default function SleepScreen() {
                         </View>
 
                         <View style={styles.habitRow}>
-                            <MaterialCommunityIcons name="cellphone-off" size={20} color="#475569" />
+                            <MaterialCommunityIcons name="cellphone-off" size={20} color={colors.textSecondary} />
                             <View style={styles.habitDetails}>
                                 <Text style={styles.habitTitleText}>Evening Screen Restriction</Text>
                                 <Text style={styles.habitDescText}>Avoid smartphones or blue light displays after 10:00 PM.</Text>
@@ -165,10 +168,10 @@ export default function SleepScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -176,9 +179,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -189,24 +192,24 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
     },
     logCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         marginTop: 20,
         borderRadius: 24,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     cardTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 16,
     },
     inputRow: {
@@ -219,18 +222,18 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#64748B",
+        color: colors.textSecondary,
         marginBottom: 6,
     },
     textInput: {
         borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         borderRadius: 12,
         paddingHorizontal: 14,
         paddingVertical: 10,
         fontSize: 14,
-        color: "#334155",
-        backgroundColor: "#F8FAFC",
+        color: isDark ? colors.textSecondary : "#334155",
+        backgroundColor: colors.background,
     },
     qualityChips: {
         flexDirection: "row",
@@ -240,7 +243,7 @@ const styles = StyleSheet.create({
     qualityChip: {
         flex: 1,
         borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         paddingVertical: 8,
         borderRadius: 10,
         alignItems: "center",
@@ -253,7 +256,7 @@ const styles = StyleSheet.create({
     qualityText: {
         fontSize: 10,
         fontWeight: "700",
-        color: "#64748B",
+        color: colors.textSecondary,
     },
     qualityTextActive: {
         color: "#FFFFFF",
@@ -270,13 +273,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     analyticsSection: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderRadius: 24,
         marginHorizontal: 20,
         marginTop: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     scoreRow: {
         flexDirection: "row",
@@ -286,7 +289,7 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: "#EFF6FF",
+        backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#EFF6FF",
         borderWidth: 4,
         borderColor: "#3B82F6",
         alignItems: "center",
@@ -296,7 +299,7 @@ const styles = StyleSheet.create({
     scoreVal: {
         fontSize: 26,
         fontWeight: "900",
-        color: "#1E3A8A",
+        color: isDark ? colors.text : "#1E3A8A",
     },
     scoreLabel: {
         fontSize: 9,
@@ -311,24 +314,24 @@ const styles = StyleSheet.create({
     analyticsTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
     },
     analyticsSub: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 2,
     },
     debtAlert: {
         flexDirection: "row",
         alignItems: "center",
         marginTop: 8,
-        backgroundColor: "#FFFBEB",
+        backgroundColor: isDark ? colors.card : "#FFFBEB",
         alignSelf: "flex-start",
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: "#FDE68A",
+        borderColor: isDark ? colors.cardBorder : "#FDE68A",
     },
     debtAlertText: {
         fontSize: 10,
@@ -337,7 +340,7 @@ const styles = StyleSheet.create({
         marginLeft: 4,
     },
     coachCard: {
-        backgroundColor: "#EFF6FF",
+        backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#EFF6FF",
         borderWidth: 1,
         borderColor: "#DBEAFE",
         borderRadius: 24,
@@ -353,12 +356,12 @@ const styles = StyleSheet.create({
     coachTitle: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#1E3A8A",
+        color: isDark ? colors.text : "#1E3A8A",
         marginLeft: 8,
     },
     coachRecomText: {
         fontSize: 12,
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         lineHeight: 18,
         marginBottom: 16,
     },
@@ -366,7 +369,7 @@ const styles = StyleSheet.create({
     habitRow: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderRadius: 14,
         padding: 12,
         marginBottom: 10,
@@ -382,11 +385,11 @@ const styles = StyleSheet.create({
     habitTitleText: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
     },
     habitDescText: {
         fontSize: 10,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 2,
     },
     toast: {

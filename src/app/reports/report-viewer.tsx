@@ -8,16 +8,19 @@ import {
     Dimensions,
     ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { mockReports, ReportData } from "@/utils/mockReportsData";
+import { useAuth } from "@/context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
 export default function ReportViewerScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
+    const insets = useSafeAreaInsets();
+    const { user } = useAuth();
 
     const [zoomLevel, setZoomLevel] = useState(100);
     const [isPrinting, setIsPrinting] = useState(false);
@@ -159,14 +162,14 @@ export default function ReportViewerScreen() {
                         <View style={styles.patientInfoTable}>
                             <View style={styles.tableRow}>
                                 <Text style={styles.tableLabelCell}>Patient Name:</Text>
-                                <Text style={styles.tableValCell}>{report.patientInfo.name}</Text>
+                                <Text style={styles.tableValCell}>{user?.fullName || report.patientInfo.name}</Text>
                                 <Text style={styles.tableLabelCell}>Registered ID:</Text>
                                 <Text style={styles.tableValCell}>{report.patientInfo.id}</Text>
                             </View>
                             <View style={styles.tableRow}>
                                 <Text style={styles.tableLabelCell}>Age / Gender:</Text>
                                 <Text style={styles.tableValCell}>
-                                    {report.patientInfo.age} Yrs / {report.patientInfo.gender}
+                                    {user?.age || report.patientInfo.age} Yrs / {user?.gender || report.patientInfo.gender}
                                 </Text>
                                 <Text style={styles.tableLabelCell}>Referred By:</Text>
                                 <Text style={styles.tableValCell}>{report.patientInfo.refDoctor}</Text>
@@ -276,7 +279,7 @@ export default function ReportViewerScreen() {
             </ScrollView>
 
             {/* Bottom Status Notifications & Action Bar */}
-            <View style={styles.bottomBar}>
+            <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 14) }]}>
                 {statusText ? (
                     <View style={styles.statusToast}>
                         {isPrinting || downloading ? (

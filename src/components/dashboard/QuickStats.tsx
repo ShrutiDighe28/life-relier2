@@ -1,16 +1,18 @@
 import React, { useEffect, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/utils/themeManager";
 
 const stats = [
-    { id: 1, title: "Reports", value: "12", icon: "file-document-outline", color: "#3B82F6", bgColor: "#EFF6FF", route: "Reports" },
-    { id: 2, title: "Appointments", value: "3", icon: "calendar-month-outline", color: "#10B981", bgColor: "#ECFDF5", route: "Appointments" },
-    { id: 3, title: "Medications", value: "5", icon: "pill", color: "#8B5CF6", bgColor: "#F5F3FF", route: "Medications" },
-    { id: 4, title: "Alerts", value: "2", icon: "bell-outline", color: "#F97316", bgColor: "#FFF7ED", route: "Alerts" },
+    { id: 1, title: "Reports", value: "12", icon: "file-document-outline", color: "#3B82F6", bgColor: "#EFF6FF", route: "/(tabs)/reports" },
+    { id: 2, title: "Appointments", value: "3", icon: "calendar-month-outline", color: "#10B981", bgColor: "#ECFDF5", route: "/(tabs)/appointments" },
+    { id: 3, title: "Medications", value: "5", icon: "pill", color: "#8B5CF6", bgColor: "#F5F3FF", route: "/profile/medicines" },
+    { id: 4, title: "Alerts", value: "2", icon: "bell-outline", color: "#F97316", bgColor: "#FFF7ED", route: "/settings/notifications" },
 ];
 
 export default function QuickStats() {
+    const router = useRouter();
     const fadeAnim = useMemo(() => new Animated.Value(0), []);
     const slideAnim = useMemo(() => new Animated.Value(20), []);
     const { colors, isDark } = useTheme();
@@ -36,7 +38,7 @@ export default function QuickStats() {
 
                     <TouchableOpacity
                         style={styles.viewAllBtn}
-                        onPress={() => console.log(`Maps to ${item.route}`)}
+                        onPress={() => router.push(item.route as any)}
                     >
                         <Text style={styles.viewAllText}>View All</Text>
                         <MaterialCommunityIcons name="arrow-right" size={14} color="#2563EB" />

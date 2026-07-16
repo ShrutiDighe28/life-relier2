@@ -11,8 +11,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 export default function SymptomCheckerScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
 
     const [symptom, setSymptom] = useState("");
@@ -57,7 +60,7 @@ export default function SymptomCheckerScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Symptom Checker</Text>
                 <View style={{ width: 38 }} />
@@ -66,7 +69,7 @@ export default function SymptomCheckerScreen() {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Safety Warning */}
                 <View style={styles.warningBox}>
-                    <MaterialCommunityIcons name="shield-alert-outline" size={16} color="#475569" />
+                    <MaterialCommunityIcons name="shield-alert-outline" size={16} color={colors.textSecondary} />
                     <Text style={styles.warningText}>
                         This is an informational tool. It is not a clinical diagnosis. In case of emergency, call local medical services immediately.
                     </Text>
@@ -81,7 +84,7 @@ export default function SymptomCheckerScreen() {
                         <TextInput
                             style={styles.textInput}
                             placeholder="e.g. Headache, Dry cough, Fatigues"
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={colors.textSecondary}
                             value={symptom}
                             onChangeText={setSymptom}
                         />
@@ -193,10 +196,10 @@ export default function SymptomCheckerScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -204,9 +207,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -217,14 +220,14 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
     },
     warningBox: {
         flexDirection: "row",
-        backgroundColor: "#F1F5F9",
+        backgroundColor: isDark ? colors.background : "#F1F5F9",
         borderRadius: 14,
         padding: 12,
         marginHorizontal: 20,
@@ -233,25 +236,25 @@ const styles = StyleSheet.create({
     },
     warningText: {
         fontSize: 10,
-        color: "#475569",
+        color: colors.textSecondary,
         marginLeft: 8,
         flex: 1,
         lineHeight: 14,
         fontWeight: "500",
     },
     formCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderRadius: 24,
         marginHorizontal: 20,
         marginTop: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     formTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 16,
     },
     inputWrapper: {
@@ -260,18 +263,18 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#64748B",
+        color: colors.textSecondary,
         marginBottom: 6,
     },
     textInput: {
         borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         borderRadius: 12,
         paddingHorizontal: 14,
         paddingVertical: 10,
         fontSize: 14,
-        color: "#334155",
-        backgroundColor: "#F8FAFC",
+        color: isDark ? colors.textSecondary : "#334155",
+        backgroundColor: colors.background,
     },
     severitySelector: {
         flexDirection: "row",
@@ -282,9 +285,9 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 32,
         borderRadius: 8,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         justifyContent: "center",
         alignItems: "center",
         marginHorizontal: 2,
@@ -296,7 +299,7 @@ const styles = StyleSheet.create({
     severityNumText: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#64748B",
+        color: colors.textSecondary,
     },
     severityNumTextActive: {
         color: "#FFFFFF",
@@ -316,7 +319,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     analyzingCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         padding: 20,
         borderRadius: 20,
@@ -325,17 +328,17 @@ const styles = StyleSheet.create({
     },
     analyzingText: {
         fontSize: 12,
-        color: "#64748B",
+        color: colors.textSecondary,
         fontWeight: "500",
     },
     resultCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         marginTop: 20,
         borderRadius: 24,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     resultHeader: {
         flexDirection: "row",
@@ -345,7 +348,7 @@ const styles = StyleSheet.create({
     resultTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginLeft: 8,
     },
     triageBanner: {
@@ -362,26 +365,26 @@ const styles = StyleSheet.create({
     sectionHeading: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 8,
         marginTop: 14,
     },
     factorsList: {},
     factorItem: {
         fontSize: 12,
-        color: "#475569",
+        color: colors.textSecondary,
         lineHeight: 18,
         marginBottom: 4,
     },
     actionsList: {},
     actionItem: {
         fontSize: 12,
-        color: "#475569",
+        color: colors.textSecondary,
         lineHeight: 18,
         marginBottom: 4,
     },
     doctorQuestionsBox: {
-        backgroundColor: "#EFF6FF",
+        backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#EFF6FF",
         borderWidth: 1,
         borderColor: "#DBEAFE",
         borderRadius: 14,
@@ -396,12 +399,12 @@ const styles = StyleSheet.create({
     questionsTitle: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#1E3A8A",
+        color: isDark ? colors.text : "#1E3A8A",
         marginLeft: 6,
     },
     questionText: {
         fontSize: 11,
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         lineHeight: 16,
         marginBottom: 4,
     },

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 interface Message {
     id: string;
@@ -28,6 +29,8 @@ const presets = [
 ];
 
 export default function AssistantScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -92,7 +95,7 @@ export default function AssistantScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>AI Assistant</Text>
@@ -102,7 +105,7 @@ export default function AssistantScreen() {
                     </View>
                 </View>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => setMessages([messages[0]])}>
-                    <MaterialCommunityIcons name="refresh" size={22} color="#071739" />
+                    <MaterialCommunityIcons name="refresh" size={22} color={colors.text} />
                 </TouchableOpacity>
             </View>
 
@@ -191,7 +194,7 @@ export default function AssistantScreen() {
                     <TextInput
                         style={styles.textInput}
                         placeholder="Type a message or symptom..."
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor={colors.textSecondary}
                         value={inputText}
                         onChangeText={setInputText}
                         onSubmitEditing={() => handleSend(inputText)}
@@ -216,10 +219,10 @@ export default function AssistantScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
     },
     keyboardContainer: {
         flex: 1,
@@ -230,9 +233,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -247,7 +250,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     statusRow: {
         flexDirection: "row",
@@ -263,7 +266,7 @@ const styles = StyleSheet.create({
     },
     statusText: {
         fontSize: 10,
-        color: "#64748B",
+        color: colors.textSecondary,
         fontWeight: "500",
     },
     chatScroll: {
@@ -272,7 +275,7 @@ const styles = StyleSheet.create({
         paddingTop: 16,
     },
     welcomeBanner: {
-        backgroundColor: "#EFF6FF",
+        backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#EFF6FF",
         borderRadius: 20,
         padding: 16,
         alignItems: "center",
@@ -284,7 +287,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         justifyContent: "center",
         alignItems: "center",
         marginBottom: 8,
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
     welcomeTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#1E3A8A",
+        color: isDark ? colors.text : "#1E3A8A",
     },
     welcomeDesc: {
         fontSize: 11,
@@ -308,9 +311,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     presetChip: {
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 12,
@@ -318,7 +321,7 @@ const styles = StyleSheet.create({
     },
     presetText: {
         fontSize: 11,
-        color: "#475569",
+        color: colors.textSecondary,
         fontWeight: "600",
     },
     messageRow: {
@@ -336,7 +339,7 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         borderRadius: 14,
-        backgroundColor: "#EFF6FF",
+        backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#EFF6FF",
         justifyContent: "center",
         alignItems: "center",
         marginRight: 8,
@@ -353,7 +356,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 4,
     },
     bubbleAi: {
-        backgroundColor: "#F1F5F9",
+        backgroundColor: isDark ? colors.background : "#F1F5F9",
         borderBottomLeftRadius: 4,
     },
     typingBubble: {
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
     textAi: {
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
     },
     timestamp: {
         fontSize: 9,
@@ -384,7 +387,7 @@ const styles = StyleSheet.create({
     },
     typingText: {
         fontSize: 12,
-        color: "#64748B",
+        color: colors.textSecondary,
         fontWeight: "500",
     },
     inputToolbar: {
@@ -392,19 +395,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 12,
         borderTopWidth: 1,
-        borderTopColor: "#F1F5F9",
-        backgroundColor: "#FFFFFF",
+        borderTopColor: colors.divider,
+        backgroundColor: colors.card,
     },
     textInput: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
         borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         borderRadius: 20,
         paddingHorizontal: 16,
         paddingVertical: 8,
         fontSize: 14,
-        color: "#0F172A",
+        color: colors.text,
         marginRight: 10,
         maxHeight: 100,
     },

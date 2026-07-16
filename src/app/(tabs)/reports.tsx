@@ -15,15 +15,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
-import { mockReports, ReportData } from "@/utils/mockReportsData";
+import { ReportData } from "@/utils/mockReportsData";
 import { useTheme } from "@/utils/themeManager";
 import { Header } from "@/components/dashboard";
+import { useAuth } from "@/context/AuthContext";
+
+// Reports are always per-user. New accounts start with an empty list.
+// mockReports is NOT imported — only available through the demo path.
+const emptyReports: ReportData[] = [];
 
 const { width } = Dimensions.get("window");
 
 export default function ReportsScreen() {
     const router = useRouter();
     const { colors, isDark } = useTheme();
+    const { user } = useAuth();
+
+    // Each user's reports are isolated — new accounts start empty
+    // (In a real backend, these would be fetched from an API keyed by user ID)
+    const userReports: ReportData[] = emptyReports;
 
     // Search and category states
     const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +79,7 @@ export default function ReportsScreen() {
 
     // Filter & Sort Reports
     const filteredReports = useMemo(() => {
-        let reports = [...mockReports];
+        let reports = [...userReports];
 
         // Filter by Category
         if (selectedCategory !== "All") {
@@ -97,7 +107,7 @@ export default function ReportsScreen() {
         }
 
         return reports;
-    }, [selectedCategory, searchQuery, sortBy]);
+    }, [userReports, selectedCategory, searchQuery, sortBy]);
 
     // Handle report download simulation
     const handleDownload = (report: ReportData) => {
@@ -159,13 +169,17 @@ export default function ReportsScreen() {
         return {
             container: [
                 styles.categoryChip,
-                isSelected ? styles.categoryChipActive : styles.categoryChipInactive,
+                isSelected 
+                    ? styles.categoryChipActive 
+                    : [styles.categoryChipInactive, { backgroundColor: colors.card, borderColor: colors.cardBorder }],
             ],
             text: [
                 styles.categoryText,
-                isSelected ? styles.categoryTextActive : styles.categoryTextInactive,
+                isSelected 
+                    ? styles.categoryTextActive 
+                    : [styles.categoryTextInactive, { color: colors.textSecondary }],
             ],
-            iconColor: isSelected ? "#FFFFFF" : "#475569",
+            iconColor: isSelected ? "#FFFFFF" : colors.textSecondary,
         };
     };
 
@@ -193,10 +207,10 @@ export default function ReportsScreen() {
 
                 {/* Primary Hero Banner */}
                 <LinearGradient
-                    colors={["#EFF6FF", "#DBEAFE"]}
+                    colors={isDark ? ["#1E293B", "#0F172A"] : ["#EFF6FF", "#DBEAFE"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    style={styles.heroBanner}
+                    style={[styles.heroBanner, isDark && { borderWidth: 1, borderColor: colors.cardBorder }]}
                 >
                     <View style={styles.heroLeft}>
                         <Image
@@ -204,14 +218,14 @@ export default function ReportsScreen() {
                             style={styles.heroIcon}
                         />
                         <View style={styles.heroTextContainer}>
-                            <Text style={styles.heroTitle}>All Your Health Reports</Text>
-                            <Text style={styles.heroSubtitle}>
+                            <Text style={[styles.heroTitle, { color: isDark ? colors.text : "#1E3A8A" }]}>All Your Health Reports</Text>
+                            <Text style={[styles.heroSubtitle, { color: isDark ? colors.textSecondary : "#2563EB" }]}>
                                 Access your test reports anytime, anywhere in one place.
                             </Text>
                         </View>
                     </View>
                     <View style={styles.heroRight}>
-                        <View style={styles.shieldWrapper}>
+                        <View style={[styles.shieldWrapper, { backgroundColor: colors.card }]}>
                             <MaterialCommunityIcons name="shield-check" size={24} color="#2563EB" />
                         </View>
                     </View>
@@ -278,7 +292,7 @@ export default function ReportsScreen() {
 
                 {/* List Header */}
                 <View style={styles.listHeader}>
-                    <Text style={styles.listTitle}>Recent Reports</Text>
+                    <Text style={[styles.listTitle, { color: colors.text }]}>Recent Reports</Text>
                     <TouchableOpacity onPress={() => { setSelectedCategory("All"); setSearchQuery(""); }}>
                         <Text style={styles.viewAllText}>View All</Text>
                     </TouchableOpacity>
@@ -288,24 +302,49 @@ export default function ReportsScreen() {
                 <View style={styles.reportsList}>
                     {filteredReports.length === 0 ? (
                         <View style={styles.emptyContainer}>
-                            <MaterialCommunityIcons name="file-search-outline" size={48} color="#94A3B8" />
-                            <Text style={styles.emptyText}>No reports found matching criteria</Text>
+                            <MaterialCommunityIcons name="file-document-outline" size={56} color={colors.textSecondary} />
+                            {userReports.length === 0 ? (
+                                // New user — no reports at all
+                                <>
+                                    <Text style={[styles.emptyText, { color: colors.text, fontWeight: '600', fontSize: 16, marginTop: 12 }]}>
+                                        No Reports Yet
+                                    </Text>
+                                    <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 4 }]}>
+                                        Your medical reports will appear here{"\n"}once your doctor uploads them.
+                                    </Text>
+                                </>
+                            ) : (
+                                // Reports exist but search/filter returned nothing
+                                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                                    No reports found matching your criteria
+                                </Text>
+                            )}
                         </View>
                     ) : (
                         filteredReports.map((report) => {
                             // Style settings based on category matching mockup
-                            let iconBgColor = "#EFF6FF";
+                            let iconBgColor = isDark ? "#1E293B" : "#EFF6FF";
                             let iconColor = "#2563EB";
                             if (report.type === "Radiology") {
-                                iconBgColor = "#F3E8FF";
+                                iconBgColor = isDark ? "#2E1065" : "#F3E8FF";
                                 iconColor = "#9333EA";
                             } else if (report.type === "Cardiology") {
-                                iconBgColor = "#FEE2E2";
+                                iconBgColor = isDark ? "#451A03" : "#FEE2E2";
                                 iconColor = "#DC2626";
                             } else if (report.id === "lft") {
-                                // Specific color theme for Liver Function Test
-                                iconBgColor = "#E8F5E9";
+                                iconBgColor = isDark ? "#064E3B" : "#E8F5E9";
                                 iconColor = "#10B981";
+                            }
+
+                            // Dynamic Status Badge Colors
+                            let statusBgColor = isDark ? "#064E3B" : "#E8F5E9";
+                            let statusTextColor = isDark ? "#34D399" : "#2E7D32";
+                            if (report.status === "Borderline") {
+                                statusBgColor = isDark ? "#78350F" : "#FEF3C7";
+                                statusTextColor = isDark ? "#FBBF24" : "#D97706";
+                            } else if (report.status === "Review") {
+                                statusBgColor = isDark ? "#7F1D1D" : "#FFEBEE";
+                                statusTextColor = isDark ? "#F87171" : "#C62828";
                             }
 
                             const isDownloading = downloadingReportId === report.id;
@@ -313,7 +352,7 @@ export default function ReportsScreen() {
                             return (
                                 <TouchableOpacity
                                     key={report.id}
-                                    style={styles.reportCard}
+                                    style={[styles.reportCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
                                     activeOpacity={0.9}
                                     onPress={() => router.push(`/reports/report-details?id=${report.id}`)}
                                 >
@@ -328,40 +367,16 @@ export default function ReportsScreen() {
 
                                     {/* Middle Content */}
                                     <View style={styles.cardContent}>
-                                        <Text style={styles.cardTitle} numberOfLines={2}>
+                                        <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={2}>
                                             {report.title}
                                         </Text>
-                                        <Text style={styles.cardSubtitle}>
+                                        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                                             {report.date} • {report.labName}
                                         </Text>
 
                                         {/* Status Badge */}
-                                        <View
-                                            style={[
-                                                styles.statusBadge,
-                                                {
-                                                    backgroundColor:
-                                                        report.status === "Normal"
-                                                            ? "#E8F5E9"
-                                                            : report.status === "Borderline"
-                                                            ? "#FEF3C7"
-                                                            : "#FFEBEE",
-                                                },
-                                            ]}
-                                        >
-                                            <Text
-                                                style={[
-                                                    styles.statusBadgeText,
-                                                    {
-                                                        color:
-                                                            report.status === "Normal"
-                                                                ? "#2E7D32"
-                                                                : report.status === "Borderline"
-                                                                ? "#D97706"
-                                                                : "#C62828",
-                                                    },
-                                                ]}
-                                            >
+                                        <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
+                                            <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
                                                 {report.status}
                                             </Text>
                                         </View>
@@ -373,20 +388,20 @@ export default function ReportsScreen() {
                                     <View style={styles.cardRightSection}>
                                         {/* Left Sub-Column */}
                                         <View style={styles.rightSubCol}>
-                                            <View style={styles.dateBox}>
-                                                <Text style={styles.dateDay}>{report.day}</Text>
-                                                <Text style={styles.dateMonth}>{report.month}</Text>
-                                                <Text style={styles.dateYear}>{report.year}</Text>
+                                            <View style={[styles.dateBox, { backgroundColor: isDark ? colors.backgroundSecondary : "#EFF6FF", borderColor: colors.cardBorder }]}>
+                                                <Text style={[styles.dateDay, { color: colors.primary }]}>{report.day}</Text>
+                                                <Text style={[styles.dateMonth, { color: colors.textSecondary }]}>{report.month}</Text>
+                                                <Text style={[styles.dateYear, { color: colors.textSecondary }]}>{report.year}</Text>
                                             </View>
 
                                             <TouchableOpacity
-                                                style={styles.cardActionButton}
+                                                style={[styles.cardActionButton, { backgroundColor: isDark ? colors.backgroundSecondary : "#EFF6FF" }]}
                                                 onPress={() => router.push(`/reports/report-viewer?id=${report.id}`)}
                                             >
                                                 <MaterialCommunityIcons
                                                     name="eye-outline"
                                                     size={18}
-                                                    color="#2563EB"
+                                                    color={colors.primary}
                                                 />
                                             </TouchableOpacity>
                                         </View>
@@ -400,18 +415,18 @@ export default function ReportsScreen() {
                                                 <MaterialCommunityIcons
                                                     name="dots-vertical"
                                                     size={22}
-                                                    color="#64748B"
+                                                    color={colors.textSecondary}
                                                 />
                                             </TouchableOpacity>
 
                                             <TouchableOpacity
-                                                style={styles.cardActionButton}
+                                                style={[styles.cardActionButton, { backgroundColor: isDark ? colors.backgroundSecondary : "#EFF6FF" }]}
                                                 onPress={() => handleDownload(report)}
                                                 disabled={isDownloading}
                                             >
                                                 {isDownloading ? (
                                                     <View style={styles.progressCircle}>
-                                                        <Text style={styles.progressText}>
+                                                        <Text style={[styles.progressText, { color: colors.primary }]}>
                                                             {Math.round(downloadProgress * 100)}%
                                                         </Text>
                                                     </View>
@@ -419,7 +434,7 @@ export default function ReportsScreen() {
                                                     <MaterialCommunityIcons
                                                         name="download-outline"
                                                         size={18}
-                                                        color="#2563EB"
+                                                        color={colors.primary}
                                                     />
                                                 )}
                                             </TouchableOpacity>
@@ -432,14 +447,14 @@ export default function ReportsScreen() {
                 </View>
 
                 {/* Secure & Private Banner */}
-                <View style={styles.secureBanner}>
+                <View style={[styles.secureBanner, { backgroundColor: isDark ? colors.card : "#EFF6FF", borderColor: colors.cardBorder }]}>
                     <View style={styles.secureLeft}>
                         <View style={styles.secureIconWrapper}>
                             <MaterialCommunityIcons name="shield-check" size={26} color="#FFFFFF" />
                         </View>
                         <View style={styles.secureTextWrapper}>
-                            <Text style={styles.secureTitle}>Secure & Private</Text>
-                            <Text style={styles.secureSubtitle}>
+                            <Text style={[styles.secureTitle, { color: isDark ? colors.text : "#1E3A8A" }]}>Secure & Private</Text>
+                            <Text style={[styles.secureSubtitle, { color: colors.textSecondary }]}>
                                 Your reports are encrypted and stored securely.
                             </Text>
                         </View>
@@ -471,53 +486,45 @@ export default function ReportsScreen() {
                     activeOpacity={1}
                     onPress={() => setIsSortModalVisible(false)}
                 >
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Sort Reports By</Text>
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Sort Reports By</Text>
                         <TouchableOpacity
-                            style={[styles.modalOption, sortBy === "newest" && styles.modalOptionSelected]}
+                            style={[styles.modalOption, { borderBottomColor: colors.divider }]}
                             onPress={() => {
                                 setSortBy("newest");
                                 setIsSortModalVisible(false);
                             }}
                         >
-                            <Text style={[styles.modalOptionText, sortBy === "newest" && styles.modalOptionTextSelected]}>
+                            <Text style={[styles.modalOptionText, { color: sortBy === "newest" ? colors.primary : colors.textSecondary }, sortBy === "newest" && styles.modalOptionTextSelected]}>
                                 Date: Newest First
                             </Text>
-                            {sortBy === "newest" && <MaterialCommunityIcons name="check" size={20} color="#2563EB" />}
+                            {sortBy === "newest" && <MaterialCommunityIcons name="check" size={20} color={colors.primary} />}
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.modalOption, sortBy === "oldest" && styles.modalOptionSelected]}
+                            style={[styles.modalOption, { borderBottomColor: colors.divider }]}
                             onPress={() => {
                                 setSortBy("oldest");
                                 setIsSortModalVisible(false);
                             }}
                         >
-                            <Text style={[styles.modalOptionText, sortBy === "oldest" && styles.modalOptionTextSelected]}>
+                            <Text style={[styles.modalOptionText, { color: sortBy === "oldest" ? colors.primary : colors.textSecondary }, sortBy === "oldest" && styles.modalOptionTextSelected]}>
                                 Date: Oldest First
                             </Text>
-                            {sortBy === "oldest" && <MaterialCommunityIcons name="check" size={20} color="#2563EB" />}
+                            {sortBy === "oldest" && <MaterialCommunityIcons name="check" size={20} color={colors.primary} />}
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[
-                                styles.modalOption,
-                                sortBy === "alphabetical" && styles.modalOptionSelected,
-                            ]}
+                            style={[styles.modalOption, { borderBottomColor: "transparent" }]}
                             onPress={() => {
                                 setSortBy("alphabetical");
                                 setIsSortModalVisible(false);
                             }}
                         >
-                            <Text
-                                style={[
-                                    styles.modalOptionText,
-                                    sortBy === "alphabetical" && styles.modalOptionTextSelected,
-                                ]}
-                            >
+                            <Text style={[styles.modalOptionText, { color: sortBy === "alphabetical" ? colors.primary : colors.textSecondary }, sortBy === "alphabetical" && styles.modalOptionTextSelected]}>
                                 Test Name: A - Z
                             </Text>
-                            {sortBy === "alphabetical" && <MaterialCommunityIcons name="check" size={20} color="#2563EB" />}
+                            {sortBy === "alphabetical" && <MaterialCommunityIcons name="check" size={20} color={colors.primary} />}
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
@@ -535,49 +542,49 @@ export default function ReportsScreen() {
                     activeOpacity={1}
                     onPress={() => setIsMenuVisible(false)}
                 >
-                    <View style={styles.sheetContent}>
-                        <View style={styles.sheetDragBar} />
+                    <View style={[styles.sheetContent, { backgroundColor: colors.card }]}>
+                        <View style={[styles.sheetDragBar, { backgroundColor: colors.divider }]} />
                         {selectedReportForMenu && (
-                            <View style={styles.sheetHeader}>
-                                <Text style={styles.sheetReportTitle} numberOfLines={1}>
+                            <View style={[styles.sheetHeader, { borderBottomColor: colors.divider }]}>
+                                <Text style={[styles.sheetReportTitle, { color: colors.text }]} numberOfLines={1}>
                                     {selectedReportForMenu.title}
                                 </Text>
-                                <Text style={styles.sheetReportSub}>
+                                <Text style={[styles.sheetReportSub, { color: colors.textSecondary }]}>
                                     {selectedReportForMenu.labName}
                                 </Text>
                             </View>
                         )}
 
                         <TouchableOpacity
-                            style={styles.sheetOption}
+                            style={[styles.sheetOption, { borderBottomColor: colors.divider }]}
                             onPress={() => handleMenuOption("details")}
                         >
-                            <MaterialCommunityIcons name="card-text-outline" size={22} color="#475569" />
-                            <Text style={styles.sheetOptionText}>View Detailed Parameters</Text>
+                            <MaterialCommunityIcons name="card-text-outline" size={22} color={colors.textSecondary} />
+                            <Text style={[styles.sheetOptionText, { color: colors.text }]}>View Detailed Parameters</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.sheetOption}
+                            style={[styles.sheetOption, { borderBottomColor: colors.divider }]}
                             onPress={() => handleMenuOption("viewer")}
                         >
-                            <MaterialCommunityIcons name="file-pdf-box" size={22} color="#475569" />
-                            <Text style={styles.sheetOptionText}>View Printable Report (PDF)</Text>
+                            <MaterialCommunityIcons name="file-pdf-box" size={22} color={colors.textSecondary} />
+                            <Text style={[styles.sheetOptionText, { color: colors.text }]}>View Printable Report (PDF)</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.sheetOption}
+                            style={[styles.sheetOption, { borderBottomColor: colors.divider }]}
                             onPress={() => handleMenuOption("share")}
                         >
-                            <MaterialCommunityIcons name="share-variant-outline" size={22} color="#475569" />
-                            <Text style={styles.sheetOptionText}>Share Securely</Text>
+                            <MaterialCommunityIcons name="share-variant-outline" size={22} color={colors.textSecondary} />
+                            <Text style={[styles.sheetOptionText, { color: colors.text }]}>Share Securely</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.sheetOption}
+                            style={[styles.sheetOption, { borderBottomColor: colors.divider }]}
                             onPress={() => handleMenuOption("download")}
                         >
-                            <MaterialCommunityIcons name="download" size={22} color="#475569" />
-                            <Text style={styles.sheetOptionText}>Download Original PDF</Text>
+                            <MaterialCommunityIcons name="download" size={22} color={colors.textSecondary} />
+                            <Text style={[styles.sheetOptionText, { color: colors.text }]}>Download Original PDF</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity

@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 interface DietaryFilter {
     id: string;
@@ -18,6 +19,8 @@ interface DietaryFilter {
 }
 
 export default function GroceryScannerScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
 
     const [selectedFilters, setSelectedFilters] = useState<string[]>(["sugar"]);
@@ -78,7 +81,7 @@ export default function GroceryScannerScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Grocery Scanner</Text>
                 <View style={{ width: 38 }} />
@@ -216,10 +219,10 @@ export default function GroceryScannerScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -227,9 +230,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -240,25 +243,25 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
     },
     filterSection: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     sectionTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
     },
     sectionSub: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 4,
     },
     filterGrid: {
@@ -269,9 +272,9 @@ const styles = StyleSheet.create({
     filterChip: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
         borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 8,
@@ -283,20 +286,20 @@ const styles = StyleSheet.create({
     },
     filterChipText: {
         fontSize: 11,
-        color: "#475569",
+        color: colors.textSecondary,
         fontWeight: "600",
     },
     filterChipTextActive: {
         color: "#FFFFFF",
     },
     scanPlaceholderCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         marginTop: 20,
         borderRadius: 24,
         padding: 24,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.02,
@@ -309,12 +312,12 @@ const styles = StyleSheet.create({
     scanCardTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginTop: 12,
     },
     scanCardSubtitle: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 4,
         textAlign: "center",
     },
@@ -341,27 +344,27 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     verdictCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         marginTop: 24,
         borderRadius: 24,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     verdictHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
         paddingBottom: 14,
         marginBottom: 14,
     },
     productName: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         flex: 1,
         paddingRight: 8,
     },
@@ -375,7 +378,7 @@ const styles = StyleSheet.create({
         fontWeight: "800",
     },
     adviceBox: {
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
         borderRadius: 14,
         padding: 12,
         marginBottom: 16,
@@ -383,12 +386,12 @@ const styles = StyleSheet.create({
     adviceTitle: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         marginBottom: 4,
     },
     adviceText: {
         fontSize: 12,
-        color: "#475569",
+        color: colors.textSecondary,
         lineHeight: 18,
     },
     triggersSection: {
@@ -408,26 +411,26 @@ const styles = StyleSheet.create({
     },
     triggerBulletText: {
         fontSize: 12,
-        color: "#475569",
+        color: colors.textSecondary,
         marginLeft: 6,
         fontWeight: "600",
     },
     ingredientsTitle: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 8,
     },
     ingredientsBox: {
         borderWidth: 1,
-        borderColor: "#E2E8F0",
-        backgroundColor: "#F8FAFC",
+        borderColor: colors.cardBorder,
+        backgroundColor: colors.background,
         borderRadius: 12,
         padding: 12,
     },
     ingredientsText: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         lineHeight: 16,
     },
 });

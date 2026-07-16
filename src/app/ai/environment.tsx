@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 interface PollenLevel {
     type: string;
@@ -18,6 +19,8 @@ interface PollenLevel {
 }
 
 export default function EnvironmentalTrackerScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
 
     const pollenLevels: PollenLevel[] = [
@@ -31,7 +34,7 @@ export default function EnvironmentalTrackerScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Environmental Tracker</Text>
                 <View style={{ width: 38 }} />
@@ -95,7 +98,7 @@ export default function EnvironmentalTrackerScreen() {
                     {pollenLevels.map((pol, idx) => (
                         <View key={idx} style={styles.pollenRow}>
                             <View style={styles.pollenLeft}>
-                                <MaterialCommunityIcons name="flower" size={16} color="#64748B" />
+                                <MaterialCommunityIcons name="flower" size={16} color={colors.textSecondary} />
                                 <Text style={styles.pollenName}>{pol.type}</Text>
                             </View>
                             <View style={styles.pollenRight}>
@@ -132,7 +135,7 @@ export default function EnvironmentalTrackerScreen() {
                 {/* AI Tailored Health Warning Recommendations */}
                 <View style={styles.aiWarningCard}>
                     <View style={styles.aiWarningHeader}>
-                        <MaterialCommunityIcons name="robot" size={20} color="#1E3A8A" />
+                        <MaterialCommunityIcons name="robot" size={20} color={isDark ? colors.secondary : "#1E3A8A"} />
                         <Text style={styles.aiWarningTitle}>AI Personal Risk Warnings</Text>
                     </View>
                     
@@ -157,10 +160,10 @@ export default function EnvironmentalTrackerScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -168,9 +171,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -181,7 +184,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
@@ -189,22 +192,22 @@ const styles = StyleSheet.create({
     locationBar: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     locationText: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#475569",
+        color: colors.textSecondary,
         marginLeft: 6,
     },
     aqiCard: {
-        backgroundColor: "#FFF7ED",
+        backgroundColor: isDark ? "rgba(249, 115, 22, 0.12)" : "#FFF7ED",
         borderWidth: 1,
-        borderColor: "#FED7AA",
+        borderColor: isDark ? "rgba(249, 115, 22, 0.3)" : "#FED7AA",
         borderRadius: 24,
         marginHorizontal: 20,
         marginTop: 20,
@@ -260,7 +263,7 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -270,18 +273,18 @@ const styles = StyleSheet.create({
         elevation: 1,
     },
     sectionCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderRadius: 20,
         marginHorizontal: 20,
         marginTop: 16,
         padding: 16,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     sectionTitle: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 14,
     },
     pollutantsGrid: {
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
     pollutantVal: {
         fontSize: 14,
         fontWeight: "800",
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         marginTop: 4,
     },
     pollutantStatus: {
@@ -314,7 +317,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     pollenLeft: {
         flexDirection: "row",
@@ -323,7 +326,7 @@ const styles = StyleSheet.create({
     pollenName: {
         fontSize: 13,
         fontWeight: "600",
-        color: "#475569",
+        color: colors.textSecondary,
         marginLeft: 8,
     },
     pollenRight: {
@@ -358,11 +361,11 @@ const styles = StyleSheet.create({
     weatherVal: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         marginTop: 2,
     },
     aiWarningCard: {
-        backgroundColor: "#EFF6FF",
+        backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#EFF6FF",
         borderWidth: 1,
         borderColor: "#DBEAFE",
         borderRadius: 24,
@@ -378,7 +381,7 @@ const styles = StyleSheet.create({
     aiWarningTitle: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#1E3A8A",
+        color: isDark ? colors.text : "#1E3A8A",
         marginLeft: 8,
     },
     warningList: {},
@@ -389,7 +392,7 @@ const styles = StyleSheet.create({
     },
     warningText: {
         fontSize: 12,
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         lineHeight: 18,
         flex: 1,
         marginLeft: 8,

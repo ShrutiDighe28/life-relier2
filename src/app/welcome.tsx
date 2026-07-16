@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import LogoBrand from "@/components/LogoBrand";
 
 export default function WelcomeScreen() {
     const router = useRouter();
@@ -24,12 +23,7 @@ export default function WelcomeScreen() {
             >
                 <SafeAreaView style={styles.safeArea}>
 
-                    {/* Header */}
-                    <View style={styles.headerContainer}>
-                        <LogoBrand size={40} fontSize={26} centered />
-                    </View>
-
-                    {/* Spacer */}
+                    {/* Spacer pushes action buttons to bottom */}
                     <View style={styles.spacer} />
 
                     {/* Bottom Section */}

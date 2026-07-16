@@ -11,8 +11,11 @@ import {
     Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useAppointments } from "@/context/AppointmentsContext";
+import { useNotifications } from "@/context/NotificationsContext";
+import { useTheme } from "@/utils/themeManager";
 
 const { width } = Dimensions.get("window");
 
@@ -44,12 +47,29 @@ const insuranceProviders = ["Aetna Insurance", "HealthShield Insurance", "BlueCr
 
 export default function BookAppointmentScreen() {
     const router = useRouter();
+    const { rescheduleId } = useLocalSearchParams();
+    const { addAppointment, rescheduleAppointment, appointments } = useAppointments();
+    const { addNotification } = useNotifications();
+    const { colors, isDark } = useTheme();
 
-    const [selectedSpecialty, setSelectedSpecialty] = useState<"Cardiology" | "Physician" | "Dermatology">("Cardiology");
-    const [selectedDoctorId, setSelectedDoctorId] = useState<string>("d1");
-    const [selectedDate, setSelectedDate] = useState("May 15, 2024");
-    const [selectedTime, setSelectedTime] = useState("10:30 AM");
-    const [selectedInsurance, setSelectedInsurance] = useState("Aetna Insurance");
+    const existingApp = useMemo(() => {
+        if (rescheduleId) {
+            return appointments.find(a => a.id === rescheduleId);
+        }
+        return null;
+    }, [rescheduleId, appointments]);
+
+    const [selectedSpecialty, setSelectedSpecialty] = useState<"Cardiology" | "Physician" | "Dermatology">(
+        (existingApp?.specialty as any) || "Cardiology"
+    );
+    const [selectedDoctorId, setSelectedDoctorId] = useState<string>("d1"); // Ideally parse from existingApp
+    const [selectedDate, setSelectedDate] = useState(
+        existingApp ? existingApp.date.split(" • ")[0] : "May 15, 2024"
+    );
+    const [selectedTime, setSelectedTime] = useState(
+        existingApp ? existingApp.date.split(" • ")[1] : "10:30 AM"
+    );
+    const [selectedInsurance, setSelectedInsurance] = useState(existingApp?.insurance || "Aetna Insurance");
     const [booking, setBooking] = useState(false);
     const [booked, setBooked] = useState(false);
 
@@ -58,10 +78,39 @@ export default function BookAppointmentScreen() {
         return mockDoctors[selectedSpecialty] || [];
     }, [selectedSpecialty]);
 
-    // Handle Confirm Booking
     const handleConfirm = () => {
         setBooking(true);
-        setTimeout(() => {
+        setTimeout(async () => {
+            if (rescheduleId) {
+                await rescheduleAppointment(rescheduleId as string, selectedDate, selectedTime);
+                addNotification({
+                    title: "Appointment Rescheduled",
+                    message: `Your appointment with ${selectedDoctor?.name || 'your doctor'} has been rescheduled to ${selectedDate} at ${selectedTime}.`,
+                    category: "Appointments",
+                    route: "/(tabs)/appointments"
+                });
+            } else {
+                await addAppointment({
+                    doctorName: selectedDoctor?.name || "",
+                    specialty: selectedSpecialty,
+                    tag: "Upcoming",
+                    tagColor: "#2563EB",
+                    tagBg: "#EFF6FF",
+                    specialtyIcon: selectedSpecialty === 'Cardiology' ? 'heart-pulse' : 'stethoscope',
+                    specialtyColor: "#2563EB",
+                    date: `${selectedDate} • ${selectedTime}`,
+                    clinic: selectedDoctor?.clinic || "",
+                    insurance: selectedInsurance,
+                    avatar: selectedDoctor?.avatar,
+                    hasVideo: true,
+                });
+                addNotification({
+                    title: "Appointment Booked",
+                    message: `Your appointment with ${selectedDoctor?.name || 'your doctor'} is confirmed for ${selectedDate} at ${selectedTime}.`,
+                    category: "Appointments",
+                    route: "/(tabs)/appointments"
+                });
+            }
             setBooking(false);
             setBooked(true);
         }, 1800);
@@ -72,26 +121,29 @@ export default function BookAppointmentScreen() {
     }, [doctors, selectedDoctorId]);
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.divider }]}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Book Appointment</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>
+                    {rescheduleId ? "Reschedule Appointment" : "Book Appointment"}
+                </Text>
                 <View style={{ width: 38 }} />
             </View>
 
             {!booked ? (
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     {/* Specialty Tabs */}
-                    <Text style={styles.sectionLabel}>Select Specialty</Text>
+                    <Text style={[styles.sectionLabel, { color: colors.text }]}>Select Specialty</Text>
                     <View style={styles.specialtyRow}>
                         {(["Cardiology", "Physician", "Dermatology"] as const).map((spec) => (
                             <TouchableOpacity
                                 key={spec}
                                 style={[
                                     styles.specialtyTab,
+                                    { backgroundColor: colors.card, borderColor: colors.cardBorder },
                                     selectedSpecialty === spec && styles.specialtyTabActive,
                                 ]}
                                 onPress={() => {
@@ -104,6 +156,7 @@ export default function BookAppointmentScreen() {
                                 <Text
                                     style={[
                                         styles.specialtyTabText,
+                                        { color: colors.textSecondary },
                                         selectedSpecialty === spec && styles.specialtyTabTextActive,
                                     ]}
                                 >
@@ -114,41 +167,51 @@ export default function BookAppointmentScreen() {
                     </View>
 
                     {/* Doctors List */}
-                    <Text style={styles.sectionLabel}>Select Doctor</Text>
+                    <Text style={[styles.sectionLabel, { color: colors.text }]}>Select Doctor</Text>
                     {doctors.map((doc) => (
                         <TouchableOpacity
                             key={doc.id}
                             style={[
                                 styles.doctorCard,
+                                { backgroundColor: colors.card, borderColor: colors.cardBorder },
                                 selectedDoctorId === doc.id && styles.doctorCardActive,
+                                isDark && selectedDoctorId === doc.id && { backgroundColor: '#1E3A8A' }
                             ]}
                             onPress={() => setSelectedDoctorId(doc.id)}
                         >
                             <Image source={doc.avatar} style={styles.doctorAvatar} />
                             <View style={styles.doctorMeta}>
-                                <Text style={styles.doctorName}>{doc.name}</Text>
-                                <Text style={styles.doctorClinic}>{doc.clinic}</Text>
+                                <Text style={[styles.doctorName, { color: selectedDoctorId === doc.id && isDark ? '#FFFFFF' : colors.text }]}>{doc.name}</Text>
+                                <Text style={[styles.doctorClinic, { color: selectedDoctorId === doc.id && isDark ? '#93C5FD' : colors.textSecondary }]}>{doc.clinic}</Text>
                                 <View style={styles.ratingRow}>
                                     <MaterialCommunityIcons name="star" size={14} color="#F59E0B" />
-                                    <Text style={styles.ratingText}>{doc.rating}</Text>
+                                    <Text style={[styles.ratingText, { color: selectedDoctorId === doc.id && isDark ? '#BFDBFE' : colors.textSecondary }]}>{doc.rating}</Text>
                                 </View>
                             </View>
                             {selectedDoctorId === doc.id && (
-                                <MaterialCommunityIcons name="check-circle" size={22} color="#2563EB" />
+                                <MaterialCommunityIcons name="check-circle" size={22} color={isDark ? "#60A5FA" : "#2563EB"} />
                             )}
                         </TouchableOpacity>
                     ))}
 
                     {/* Date picker mock */}
-                    <Text style={styles.sectionLabel}>Select Date (May 2024)</Text>
+                    <Text style={[styles.sectionLabel, { color: colors.text }]}>Select Date (May 2024)</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.datesRow}>
                         {["May 14, 2024", "May 15, 2024", "May 16, 2024", "May 17, 2024", "May 18, 2024", "May 19, 2024"].map((date) => (
                             <TouchableOpacity
                                 key={date}
-                                style={[styles.dateChip, selectedDate === date && styles.dateChipActive]}
+                                style={[
+                                    styles.dateChip,
+                                    { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                                    selectedDate === date && styles.dateChipActive
+                                ]}
                                 onPress={() => setSelectedDate(date)}
                             >
-                                <Text style={[styles.dateChipText, selectedDate === date && styles.dateChipTextActive]}>
+                                <Text style={[
+                                    styles.dateChipText, 
+                                    { color: colors.textSecondary },
+                                    selectedDate === date && styles.dateChipTextActive
+                                ]}>
                                     {date.split(",")[0]}
                                 </Text>
                             </TouchableOpacity>
@@ -156,15 +219,23 @@ export default function BookAppointmentScreen() {
                     </ScrollView>
 
                     {/* Slots grid */}
-                    <Text style={styles.sectionLabel}>Available Time Slots</Text>
+                    <Text style={[styles.sectionLabel, { color: colors.text }]}>Available Time Slots</Text>
                     <View style={styles.slotsGrid}>
                         {timeSlots.map((slot) => (
                             <TouchableOpacity
                                 key={slot}
-                                style={[styles.slotChip, selectedTime === slot && styles.slotChipActive]}
+                                style={[
+                                    styles.slotChip,
+                                    { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                                    selectedTime === slot && styles.slotChipActive
+                                ]}
                                 onPress={() => setSelectedTime(slot)}
                             >
-                                <Text style={[styles.slotChipText, selectedTime === slot && styles.slotChipTextActive]}>
+                                <Text style={[
+                                    styles.slotChipText, 
+                                    { color: colors.textSecondary },
+                                    selectedTime === slot && styles.slotChipTextActive
+                                ]}>
                                     {slot}
                                 </Text>
                             </TouchableOpacity>
@@ -172,13 +243,14 @@ export default function BookAppointmentScreen() {
                     </View>
 
                     {/* Insurance select */}
-                    <Text style={styles.sectionLabel}>Insurance Carrier</Text>
-                    <View style={styles.insuranceBox}>
+                    <Text style={[styles.sectionLabel, { color: colors.text }]}>Insurance Carrier</Text>
+                    <View style={[styles.insuranceBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                         {insuranceProviders.map((prov) => (
                             <TouchableOpacity
                                 key={prov}
                                 style={[
                                     styles.insuranceOption,
+                                    { borderBottomColor: colors.divider },
                                     selectedInsurance === prov && styles.insuranceOptionActive,
                                 ]}
                                 onPress={() => setSelectedInsurance(prov)}
@@ -186,13 +258,15 @@ export default function BookAppointmentScreen() {
                                 <Text
                                     style={[
                                         styles.insuranceText,
+                                        { color: colors.textSecondary },
                                         selectedInsurance === prov && styles.insuranceTextActive,
+                                        isDark && selectedInsurance === prov && { color: "#60A5FA" }
                                     ]}
                                 >
                                     {prov}
                                 </Text>
                                 {selectedInsurance === prov && (
-                                    <MaterialCommunityIcons name="check" size={16} color="#2563EB" />
+                                    <MaterialCommunityIcons name="check" size={16} color={isDark ? "#60A5FA" : "#2563EB"} />
                                 )}
                             </TouchableOpacity>
                         ))}
@@ -209,36 +283,38 @@ export default function BookAppointmentScreen() {
                 </ScrollView>
             ) : (
                 /* Successful Booking confirmation Page */
-                <View style={styles.successContainer}>
+                <View style={[styles.successContainer, { backgroundColor: colors.background }]}>
                     <View style={styles.successIconWrapper}>
                         <MaterialCommunityIcons name="check-decagram" size={68} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.successTitle}>Booking Confirmed!</Text>
-                    <Text style={styles.successSub}>
-                        Your appointment has been registered in the LifeRelier clinic scheduling database.
+                    <Text style={[styles.successTitle, { color: colors.text }]}>
+                        {rescheduleId ? "Reschedule Confirmed!" : "Booking Confirmed!"}
+                    </Text>
+                    <Text style={[styles.successSub, { color: colors.textSecondary }]}>
+                        Your appointment has been {rescheduleId ? "rescheduled" : "registered"} in the LifeRelier clinic scheduling database.
                     </Text>
 
                     {/* Booking metadata display cards */}
-                    <View style={styles.receiptCard}>
-                        <View style={styles.receiptRow}>
-                            <Text style={styles.receiptLabel}>Physician:</Text>
-                            <Text style={styles.receiptVal}>{selectedDoctor?.name}</Text>
+                    <View style={[styles.receiptCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder }]}>
+                        <View style={[styles.receiptRow, { borderBottomColor: colors.cardBorder }]}>
+                            <Text style={[styles.receiptLabel, { color: colors.textSecondary }]}>Physician:</Text>
+                            <Text style={[styles.receiptVal, { color: colors.text }]}>{selectedDoctor?.name}</Text>
                         </View>
-                        <View style={styles.receiptRow}>
-                            <Text style={styles.receiptLabel}>Specialty:</Text>
-                            <Text style={styles.receiptVal}>{selectedSpecialty}</Text>
+                        <View style={[styles.receiptRow, { borderBottomColor: colors.cardBorder }]}>
+                            <Text style={[styles.receiptLabel, { color: colors.textSecondary }]}>Specialty:</Text>
+                            <Text style={[styles.receiptVal, { color: colors.text }]}>{selectedSpecialty}</Text>
                         </View>
-                        <View style={styles.receiptRow}>
-                            <Text style={styles.receiptLabel}>Date & Time:</Text>
-                            <Text style={styles.receiptVal}>{selectedDate} • {selectedTime}</Text>
+                        <View style={[styles.receiptRow, { borderBottomColor: colors.cardBorder }]}>
+                            <Text style={[styles.receiptLabel, { color: colors.textSecondary }]}>Date & Time:</Text>
+                            <Text style={[styles.receiptVal, { color: colors.text }]}>{selectedDate} • {selectedTime}</Text>
                         </View>
-                        <View style={styles.receiptRow}>
-                            <Text style={styles.receiptLabel}>Location:</Text>
-                            <Text style={styles.receiptVal} numberOfLines={1}>{selectedDoctor?.clinic}</Text>
+                        <View style={[styles.receiptRow, { borderBottomColor: colors.cardBorder }]}>
+                            <Text style={[styles.receiptLabel, { color: colors.textSecondary }]}>Location:</Text>
+                            <Text style={[styles.receiptVal, { color: colors.text }]} numberOfLines={1}>{selectedDoctor?.clinic}</Text>
                         </View>
                         <View style={[styles.receiptRow, { borderBottomWidth: 0 }]}>
-                            <Text style={styles.receiptLabel}>Insurance:</Text>
-                            <Text style={styles.receiptVal}>{selectedInsurance}</Text>
+                            <Text style={[styles.receiptLabel, { color: colors.textSecondary }]}>Insurance:</Text>
+                            <Text style={[styles.receiptVal, { color: colors.text }]}>{selectedInsurance}</Text>
                         </View>
                     </View>
 

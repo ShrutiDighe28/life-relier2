@@ -250,7 +250,7 @@ export default function ReportShareScreen() {
                         <Text style={[styles.sectionDivider, { color: colors.textSecondary }]}>OR SHARE WITH ANY PHYSICIAN</Text>
 
                         <View style={styles.inputWrapper}>
-                            <Text style={[styles.inputLabel, { color: colors.text }]}>Doctor's Email Address</Text>
+                            <Text style={[styles.inputLabel, { color: colors.text }]}>Doctor&apos;s Email Address</Text>
                             <TextInput
                                 style={[styles.textInput, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]}
                                 placeholder="e.g. physician@clinic.com"

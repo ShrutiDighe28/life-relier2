@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Header } from "@/components/dashboard";
 import { useTheme } from "@/utils/themeManager";
+import { useAuth } from "@/context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -124,8 +125,8 @@ const myHealthItems: NavigationItem[] = [
 
 const preferenceItems: NavigationItem[] = [
     {
-        label: "Settings",
-        description: "Manage app settings and preferences",
+        label: "Account Settings",
+        description: "Profile, security, password & privacy",
         icon: "cog-outline",
         iconColor: "#2563EB",
         iconBg: "#EFF6FF",
@@ -168,14 +169,56 @@ const preferenceItems: NavigationItem[] = [
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, isDark } = useTheme();
+    const { user, logout } = useAuth();
 
-    const handleNavigate = (route: string) => {
+    const handleNavigate = async (route: string) => {
         if (route === "/login") {
+            await logout();
             router.replace("/login");
         } else {
             router.push(route as any);
         }
     };
+
+    // Calculate age dynamically from dob
+    const calculateAge = (dobString?: string): string => {
+        if (!dobString) return "";
+        const parts = dobString.split("/");
+        if (parts.length !== 3) return "";
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const year = parseInt(parts[2], 10);
+        
+        const birthDate = new Date(year, month, day);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age > 0 ? `${age} Years` : "";
+    };
+
+    // Format personal stats dynamically
+    const getPersonalStats = () => {
+        const stats: string[] = [];
+        
+        if (user?.dob) {
+            const ageStr = calculateAge(user.dob);
+            if (ageStr) stats.push(ageStr);
+        } else if (user?.age) {
+            stats.push(`${user.age} Years`);
+        }
+
+        if (user?.gender) stats.push(user.gender);
+        if (user?.height) stats.push(user.height);
+        if (user?.weight) stats.push(user.weight);
+        if (user?.bloodGroup) stats.push(`Blood: ${user.bloodGroup}`);
+
+        return stats.length > 0 ? stats.join(" • ") : "Setup your profile details";
+    };
+
+    const displayStats = getPersonalStats();
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
@@ -204,32 +247,38 @@ export default function ProfileScreen() {
                         {/* Middle Info Details */}
                         <View style={styles.profileMeta}>
                             <View style={styles.nameRow}>
-                                <Text style={[styles.profileName, isDark && { color: "#FFFFFF" }]}>John Doe</Text>
+                                <Text style={[styles.profileName, isDark && { color: "#FFFFFF" }]}>
+                                    {user?.fullName || "User Name"}
+                                </Text>
                                 <View style={styles.premiumBadge}>
                                     <MaterialCommunityIcons name="crown-outline" size={10} color="#2563EB" style={{ marginRight: 2 }} />
                                     <Text style={styles.premiumText}>Premium Member</Text>
                                 </View>
                             </View>
 
-                            <Text style={[styles.personalStats, isDark && { color: "#94A3B8" }]}>32 Years • Male • 5'10" • 72 kg</Text>
+                            <Text style={[styles.personalStats, isDark && { color: "#94A3B8" }]}>{displayStats}</Text>
 
                             <View style={styles.contactRow}>
                                 <MaterialCommunityIcons name="email-outline" size={12} color={isDark ? "#94A3B8" : "#64748B"} />
-                                <Text style={[styles.contactText, isDark && { color: "#E2E8F0" }]}>john.doe@email.com</Text>
+                                <Text style={[styles.contactText, isDark && { color: "#E2E8F0" }]}>
+                                    {user?.email || "No Email"}
+                                </Text>
                             </View>
                             <View style={styles.contactRow}>
                                 <MaterialCommunityIcons name="phone-outline" size={12} color={isDark ? "#94A3B8" : "#64748B"} />
-                                <Text style={[styles.contactText, isDark && { color: "#E2E8F0" }]}>+1 987 654 3210</Text>
+                                <Text style={[styles.contactText, isDark && { color: "#E2E8F0" }]}>
+                                    {user?.mobile || "No Mobile"}
+                                </Text>
                             </View>
                         </View>
 
-                        {/* Edit Button */}
+                        {/* Account Settings Button */}
                         <TouchableOpacity
                             style={styles.editBtn}
                             onPress={() => router.push("/settings/account")}
                         >
-                            <MaterialCommunityIcons name="pencil-outline" size={12} color="#2563EB" style={{ marginRight: 4 }} />
-                            <Text style={styles.editBtnText}>Edit Profile</Text>
+                            <MaterialCommunityIcons name="cog-outline" size={12} color="#2563EB" style={{ marginRight: 4 }} />
+                            <Text style={styles.editBtnText}>Account Settings</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

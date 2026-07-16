@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 interface Medicine {
     name: string;
@@ -21,6 +22,8 @@ interface Medicine {
 }
 
 export default function PrescriptionScannerScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
     const [scanning, setScanning] = useState(false);
     const [scannedResult, setScannedResult] = useState<boolean>(false);
@@ -67,7 +70,7 @@ export default function PrescriptionScannerScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Prescription Scanner</Text>
                 <View style={{ width: 38 }} />
@@ -84,7 +87,7 @@ export default function PrescriptionScannerScreen() {
                         </View>
                     ) : (
                         <View style={styles.viewfinderInner}>
-                            <MaterialCommunityIcons name="camera-outline" size={44} color="#64748B" />
+                            <MaterialCommunityIcons name="camera-outline" size={44} color={colors.textSecondary} />
                             <Text style={styles.viewfinderTitle}>Capture Prescription Document</Text>
                             <Text style={styles.viewfinderDesc}>Align doctor's written note within the camera guidelines</Text>
                             
@@ -167,10 +170,10 @@ export default function PrescriptionScannerScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -178,9 +181,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -191,7 +194,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
@@ -265,34 +268,34 @@ const styles = StyleSheet.create({
     resultsTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginLeft: 8,
     },
     medCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderRadius: 20,
         padding: 16,
         marginBottom: 14,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     medHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
         paddingBottom: 12,
         marginBottom: 12,
     },
     medName: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
     },
     medDosage: {
         fontSize: 12,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 2,
     },
     durationBadge: {
@@ -321,13 +324,13 @@ const styles = StyleSheet.create({
     detailVal: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         marginTop: 2,
     },
     safetyAlertCard: {
-        backgroundColor: "#FFFBEB",
+        backgroundColor: isDark ? colors.card : "#FFFBEB",
         borderWidth: 1,
-        borderColor: "#FDE68A",
+        borderColor: isDark ? colors.cardBorder : "#FDE68A",
         borderRadius: 20,
         padding: 16,
         marginBottom: 20,

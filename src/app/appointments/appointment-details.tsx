@@ -10,11 +10,20 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useAppointments } from "@/context/AppointmentsContext";
+import { useNotifications } from "@/context/NotificationsContext";
+import { useTheme } from "@/utils/themeManager";
 
 export default function AppointmentDetailsScreen() {
     const router = useRouter();
+    const { id } = useLocalSearchParams();
+    const { appointments, cancelAppointment } = useAppointments();
+    const { addNotification } = useNotifications();
+    const { colors, isDark } = useTheme();
+
+    const appDetails = appointments.find(a => a.id === id);
 
     const [notes, setNotes] = useState("");
     const [fileUploaded, setFileUploaded] = useState(false);
@@ -30,62 +39,90 @@ export default function AppointmentDetailsScreen() {
         }, 1500);
     };
 
-    const handleCancelSim = () => {
+    const handleCancelSim = async () => {
+        if (id) {
+            await cancelAppointment(id as string);
+            if (appDetails) {
+                addNotification({
+                    title: "Appointment Cancelled",
+                    message: `Your appointment with ${appDetails.doctorName} on ${appDetails.date} has been cancelled.`,
+                    category: "Appointments",
+                    route: "/(tabs)/appointments"
+                });
+            }
+        }
         setIsCancelled(true);
         setShowCancelAlert(false);
     };
 
+    if (!appDetails && !isCancelled) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
+                <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.divider }]}>
+                    <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
+                        <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>Appointment Details</Text>
+                    <View style={{ width: 38 }} />
+                </View>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: colors.text }}>Appointment not found</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.divider }]}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Appointment Details</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Appointment Details</Text>
                 <View style={{ width: 38 }} />
             </View>
 
-            {!isCancelled ? (
+            {!isCancelled && appDetails ? (
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     {/* Doctor Card */}
-                    <View style={styles.doctorCard}>
+                    <View style={[styles.doctorCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                         <Image
-                            source={require("@/assets/images/dashboard/doctor.png")}
+                            source={appDetails.avatar || require("@/assets/images/dashboard/doctor.png")}
                             style={styles.doctorAvatar}
                         />
                         <View style={styles.doctorMeta}>
-                            <Text style={styles.doctorName}>
-                                Dr. James Anderson{' '}
+                            <Text style={[styles.doctorName, { color: colors.text }]}>
+                                {appDetails.doctorName}{' '}
                                 <MaterialCommunityIcons name={"check-decagram" as any} size={14} color="#2563EB" />
                             </Text>
-                            <Text style={styles.specialtyText}>Cardiologist</Text>
-                            <Text style={styles.ratingText}>4.9 ★ (124 reviews)</Text>
+                            <Text style={[styles.specialtyText, { color: appDetails.specialtyColor || "#2563EB" }]}>{appDetails.specialty}</Text>
+                            <Text style={[styles.ratingText, { color: colors.textSecondary }]}>4.9 ★ (124 reviews)</Text>
                         </View>
                     </View>
 
                     {/* Date/Time Banner */}
-                    <View style={styles.dateTimeCard}>
+                    <View style={[styles.dateTimeCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                         <View style={styles.dateTimeCol}>
                             <MaterialCommunityIcons name="calendar" size={18} color="#2563EB" />
-                            <Text style={styles.dateTimeLabel}>DATE</Text>
-                            <Text style={styles.dateTimeVal}>May 14, 2024</Text>
+                            <Text style={[styles.dateTimeLabel, { color: colors.textSecondary }]}>DATE</Text>
+                            <Text style={[styles.dateTimeVal, { color: colors.text }]}>{appDetails.date.split(" • ")[0]}</Text>
                         </View>
-                        <View style={styles.dividerCol} />
+                        <View style={[styles.dividerCol, { backgroundColor: colors.cardBorder }]} />
                         <View style={styles.dateTimeCol}>
                             <MaterialCommunityIcons name="clock-outline" size={18} color="#2563EB" />
-                            <Text style={styles.dateTimeLabel}>TIME</Text>
-                            <Text style={styles.dateTimeVal}>10:30 AM</Text>
+                            <Text style={[styles.dateTimeLabel, { color: colors.textSecondary }]}>TIME</Text>
+                            <Text style={[styles.dateTimeVal, { color: colors.text }]}>{appDetails.date.split(" • ")[1]}</Text>
                         </View>
                     </View>
 
                     {/* Visit Checklist */}
-                    <View style={styles.sectionCard}>
-                        <Text style={styles.sectionTitle}>Preparation Checklist</Text>
-                        <Text style={styles.sectionSub}>AI suggested tasks to complete before your visit</Text>
+                    <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Preparation Checklist</Text>
+                        <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>AI suggested tasks to complete before your visit</Text>
 
                         {/* Task 1: Upload scans */}
-                        <View style={styles.checklistRow}>
+                        <View style={[styles.checklistRow, { borderTopColor: colors.divider }]}>
                             <TouchableOpacity
                                 style={styles.checkbox}
                                 onPress={handleUploadSim}
@@ -93,41 +130,45 @@ export default function AppointmentDetailsScreen() {
                                 <MaterialCommunityIcons
                                     name={fileUploaded ? "checkbox-marked" : "checkbox-blank-outline"}
                                     size={22}
-                                    color={fileUploaded ? "#2563EB" : "#94A3B8"}
+                                    color={fileUploaded ? "#2563EB" : colors.textSecondary}
                                 />
                             </TouchableOpacity>
                             <View style={styles.checklistMeta}>
-                                <Text style={styles.checklistTitle}>Upload prior Pathology report scans</Text>
-                                <Text style={styles.checklistDesc}>Helps doctor analyze blood levels baseline.</Text>
+                                <Text style={[styles.checklistTitle, { color: colors.text }]}>Upload prior Pathology report scans</Text>
+                                <Text style={[styles.checklistDesc, { color: colors.textSecondary }]}>Helps doctor analyze blood levels baseline.</Text>
                                 
                                 {uploading ? (
                                     <ActivityIndicator size="small" color="#2563EB" style={{ alignSelf: "flex-start", marginTop: 4 }} />
                                 ) : fileUploaded ? (
                                     <Text style={styles.uploadSuccessText}>✓ CBC_Report_2026.pdf Uploaded</Text>
                                 ) : (
-                                    <TouchableOpacity style={styles.uploadBtn} onPress={handleUploadSim}>
-                                        <Text style={styles.uploadBtnText}>Upload PDF</Text>
+                                    <TouchableOpacity style={[styles.uploadBtn, isDark && { backgroundColor: '#1E3A8A', borderColor: '#2563EB' }]} onPress={handleUploadSim}>
+                                        <Text style={[styles.uploadBtnText, isDark && { color: '#BFDBFE' }]}>Upload PDF</Text>
                                     </TouchableOpacity>
                                 )}
                             </View>
                         </View>
 
                         {/* Task 2: Symptom Notes */}
-                        <View style={styles.checklistRow}>
+                        <View style={[styles.checklistRow, { borderTopColor: colors.divider }]}>
                             <View style={styles.checkbox}>
                                 <MaterialCommunityIcons
                                     name={notes.trim() ? "checkbox-marked" : "checkbox-blank-outline"}
                                     size={22}
-                                    color={notes.trim() ? "#2563EB" : "#94A3B8"}
+                                    color={notes.trim() ? "#2563EB" : colors.textSecondary}
                                 />
                             </View>
                             <View style={styles.checklistMeta}>
-                                <Text style={styles.checklistTitle}>State active symptoms or queries</Text>
-                                <Text style={styles.checklistDesc}>Write down issues you wish to discuss.</Text>
+                                <Text style={[styles.checklistTitle, { color: colors.text }]}>State active symptoms or queries</Text>
+                                <Text style={[styles.checklistDesc, { color: colors.textSecondary }]}>Write down issues you wish to discuss.</Text>
                                 <TextInput
-                                    style={styles.notesInput}
+                                    style={[styles.notesInput, { 
+                                        backgroundColor: colors.backgroundSecondary, 
+                                        borderColor: colors.cardBorder,
+                                        color: colors.text
+                                    }]}
                                     placeholder="Add notes for your doctor..."
-                                    placeholderTextColor="#94A3B8"
+                                    placeholderTextColor={colors.textSecondary}
                                     value={notes}
                                     onChangeText={setNotes}
                                 />
@@ -136,23 +177,22 @@ export default function AppointmentDetailsScreen() {
                     </View>
 
                     {/* Directions / Clinic Map */}
-                    <View style={styles.sectionCard}>
-                        <Text style={styles.sectionTitle}>Location & Directions</Text>
+                    <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Location & Directions</Text>
                         
                         <View style={styles.clinicLocationRow}>
-                            <MaterialCommunityIcons name="office-building" size={20} color="#64748B" />
+                            <MaterialCommunityIcons name="office-building" size={20} color={colors.textSecondary} />
                             <View style={{ marginLeft: 10, flex: 1 }}>
-                                <Text style={styles.clinicNameText}>HeartCare Clinic</Text>
-                                <Text style={styles.clinicAddressText}>Room 408, 120 Broadway, New York, NY</Text>
+                                <Text style={[styles.clinicNameText, { color: colors.text }]}>{appDetails.clinic.split(",")[0]}</Text>
+                                <Text style={[styles.clinicAddressText, { color: colors.textSecondary }]}>{appDetails.clinic}</Text>
                             </View>
                         </View>
 
                         {/* Map placeholder */}
-                        <View style={styles.mapMock}>
-                            <View style={styles.mapGridLines}>
-                                <MaterialCommunityIcons name="map-marker-radius" size={32} color="#EF4444" />
-                            </View>
-                            <TouchableOpacity style={styles.navigateBtn}>
+                        <View style={[styles.mapMock, { backgroundColor: colors.backgroundSecondary }]}>
+                            <View style={[styles.mapGridLines, { backgroundColor: colors.cardBorder }]} />
+                            <MaterialCommunityIcons name="map-marker-radius" size={32} color="#EF4444" style={{ zIndex: 1 }} />
+                            <TouchableOpacity style={[styles.navigateBtn, { zIndex: 2 }]}>
                                 <Text style={styles.navigateBtnText}>Open in Google Maps</Text>
                             </TouchableOpacity>
                         </View>
@@ -165,12 +205,12 @@ export default function AppointmentDetailsScreen() {
                 </ScrollView>
             ) : (
                 /* Cancel Confirmation Screen */
-                <View style={styles.cancelConfirmContainer}>
+                <View style={[styles.cancelConfirmContainer, { backgroundColor: colors.background }]}>
                     <View style={styles.cancelIconCircle}>
                         <MaterialCommunityIcons name="close-circle-outline" size={68} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.cancelConfirmTitle}>Appointment Cancelled</Text>
-                    <Text style={styles.cancelConfirmSub}>
+                    <Text style={[styles.cancelConfirmTitle, { color: colors.text }]}>Appointment Cancelled</Text>
+                    <Text style={[styles.cancelConfirmSub, { color: colors.textSecondary }]}>
                         The scheduling slots have been released. No fee was charged.
                     </Text>
                     <TouchableOpacity style={styles.dismissBtn} onPress={() => router.replace("/(tabs)/appointments")}>
@@ -180,16 +220,16 @@ export default function AppointmentDetailsScreen() {
             )}
 
             {/* Custom cancel alert overlay modal */}
-            {showCancelAlert && (
+            {showCancelAlert && appDetails && (
                 <View style={styles.overlayModal}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Cancel Appointment?</Text>
-                        <Text style={styles.modalDesc}>
-                            Are you sure you want to cancel this visit with Dr. James Anderson? There is no penalty fee.
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Cancel Appointment?</Text>
+                        <Text style={[styles.modalDesc, { color: colors.textSecondary }]}>
+                            Are you sure you want to cancel this visit with {appDetails.doctorName}? There is no penalty fee.
                         </Text>
                         <View style={styles.modalBtns}>
-                            <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setShowCancelAlert(false)}>
-                                <Text style={styles.modalBtnCancelText}>No, Keep</Text>
+                            <TouchableOpacity style={[styles.modalBtnCancel, { borderColor: colors.cardBorder }]} onPress={() => setShowCancelAlert(false)}>
+                                <Text style={[styles.modalBtnCancelText, { color: colors.textSecondary }]}>No, Keep</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalBtnConfirm} onPress={handleCancelSim}>
                                 <Text style={styles.modalBtnConfirmText}>Yes, Cancel</Text>

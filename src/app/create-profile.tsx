@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -16,9 +16,11 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
 import LogoBrand from "@/components/LogoBrand";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CreateProfileScreen() {
     const router = useRouter();
+    const { user, updateProfile } = useAuth();
 
     const [name, setName] = useState("");
     const [dob, setDob] = useState("");
@@ -28,8 +30,28 @@ export default function CreateProfileScreen() {
     const [allergies, setAllergies] = useState("");
     const [medicalHistory, setMedicalHistory] = useState("");
 
-    const handleComplete = () => {
-        router.replace("/(tabs)/home");
+    // Prefill name if user context becomes available
+    useEffect(() => {
+        if (user?.fullName) {
+            setName(user.fullName);
+        }
+    }, [user]);
+
+    const handleComplete = async () => {
+        try {
+            await updateProfile({
+                fullName: name,
+                dob,
+                gender,
+                bloodGroup,
+                emergencyContact,
+                allergies,
+                medicalHistory,
+            });
+            router.replace("/(tabs)/home");
+        } catch (err) {
+            console.error("Failed to complete profile registration:", err);
+        }
     };
 
     return (
@@ -116,7 +138,8 @@ export default function CreateProfileScreen() {
                     <Text style={styles.description}>
                         Help us personalize your healthcare
                         experience.
-                    </Text>          {/* ================= Profile Photo ================= */}
+                    </Text>
+                    {/* ================= Profile Photo ================= */}
 
                     <TouchableOpacity style={styles.profileContainer}>
 
@@ -244,7 +267,8 @@ export default function CreateProfileScreen() {
                             </Text>
                         </TouchableOpacity>
 
-                    </View>          {/* ================= Blood Group ================= */}
+                    </View>
+                    {/* ================= Blood Group ================= */}
 
                     <Text style={styles.sectionTitle}>
                         Blood Group
@@ -352,7 +376,8 @@ export default function CreateProfileScreen() {
                             onChangeText={setMedicalHistory}
                         />
 
-                    </View>          {/* ================= Complete Profile Button ================= */}
+                    </View>
+                    {/* ================= Complete Profile Button ================= */}
 
                     <TouchableOpacity
                         activeOpacity={0.9}

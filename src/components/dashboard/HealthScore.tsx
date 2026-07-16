@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo } from "react";
 import { View, Text, StyleSheet, Image, Animated, TouchableOpacity } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/utils/themeManager";
 
 export default function HealthScore() {
+    const router = useRouter();
     const slideAnim = useMemo(() => new Animated.Value(20), []);
     const fadeAnim = useMemo(() => new Animated.Value(0), []);
     const { colors, isDark } = useTheme();
@@ -15,11 +17,15 @@ export default function HealthScore() {
         ]).start();
     }, [fadeAnim, slideAnim]);
 
+    const handleNavigate = () => {
+        router.push("/profile/goals");
+    };
+
     return (
         <Animated.View style={[styles.wrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.header}>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Health Score</Text>
-                <TouchableOpacity onPress={() => console.log("Navigate to Health Score Details")}>
+                <TouchableOpacity onPress={handleNavigate}>
                     <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
                 </TouchableOpacity>
             </View>
@@ -27,7 +33,7 @@ export default function HealthScore() {
             <TouchableOpacity
                 style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: isDark ? 1 : 0 }]}
                 activeOpacity={0.9}
-                onPress={() => console.log("Navigate to Health Score Details")}
+                onPress={handleNavigate}
             >
                 <View style={styles.progressContainer}>
                     <View style={[styles.progressRing, { borderColor: isDark ? colors.background : "#E2E8F0", borderTopColor: "#10B981", borderRightColor: "#10B981", borderBottomColor: "#10B981" }]}>

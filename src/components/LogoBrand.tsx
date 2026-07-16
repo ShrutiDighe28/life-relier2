@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, ViewStyle } from "react-native";
+import { View, Text, ViewStyle } from "react-native";
+import Svg, { Path, Rect } from "react-native-svg";
 import { useTheme } from "@/utils/themeManager";
 
 interface LogoBrandProps {
@@ -9,11 +10,38 @@ interface LogoBrandProps {
     centered?: boolean;
 }
 
-export default function LogoBrand({ size = 32, fontSize = 22, style, centered = false }: LogoBrandProps) {
-    const { colors } = useTheme();
-    // Aspect ratio of the original logo life_relier_logo.png is roughly 3.47
-    // We crop only the icon mark from the left (which fits in a square) by setting the parent width to size * 1.15
-    const imageWidth = size * 3.47;
+const LogoIcon = ({ size }: { size: number }) => {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 100 100">
+            {/* Blue 'L' Shape (Drawn first so it layers behind if necessary) */}
+            <Path
+                d="M 7 10 L 7 70 L 30 70"
+                fill="none"
+                stroke="#005A9C"
+                strokeWidth="10"
+                strokeLinecap="butt"
+                strokeLinejoin="miter"
+            />
+            
+            {/* Blue 'R' Shape (Drawn first so the diagonal leg is flawlessly hidden beneath the Red Cross until the exact 62,62 corner intersection) */}
+            <Path
+                d="M 70 30 L 73 30 A 20 20 0 0 1 73 70 L 68 70 M 50.5 47 L 90 98"
+                fill="none"
+                stroke="#005A9C"
+                strokeWidth="10"
+                strokeLinecap="butt"
+                strokeLinejoin="miter"
+            />
+
+            {/* Red Cross - Thick medical cross drawn ON TOP to perfectly define the inner corner intersections */}
+            <Rect x="38" y="10" width="24" height="80" rx="12" fill="#C8102E" />
+            <Rect x="15" y="38" width="70" height="24" rx="12" fill="#C8102E" />
+        </Svg>
+    );
+};
+
+export default function LogoBrand({ size = 42, fontSize = 24, style, centered = false }: LogoBrandProps) {
+    const { colors, isDark } = useTheme();
 
     return (
         <View
@@ -26,29 +54,19 @@ export default function LogoBrand({ size = 32, fontSize = 22, style, centered = 
                 style,
             ]}
         >
-            {/* Constrained crop container showing ONLY the logo symbol */}
-            <View style={{ width: size * 1.15, height: size, overflow: "hidden", marginRight: 6 }}>
-                <Image
-                    source={require("@/assets/images/logo/life_relier_logo.png")}
-                    style={{
-                        width: imageWidth,
-                        height: size,
-                        resizeMode: "stretch",
-                        marginLeft: 0,
-                    }}
-                />
-            </View>
+            <LogoIcon size={size} />
 
-            {/* Official Corporate Name Text - adapting dynamically for dark mode contrast */}
             <Text
                 style={{
                     fontSize: fontSize,
-                    fontWeight: "800",
+                    fontWeight: "900",
+                    fontFamily: "System",
                     letterSpacing: -0.5,
+                    marginLeft: 6,
                 }}
             >
-                <Text style={{ color: "#0062C4" }}>Life </Text>
-                <Text style={{ color: colors.text }}>Relier</Text>
+                <Text style={{ color: "#005A9C" }}>Life</Text>
+                <Text style={{ color: isDark ? "#FFFFFF" : "#005A9C" }}> Relier</Text>
             </Text>
         </View>
     );

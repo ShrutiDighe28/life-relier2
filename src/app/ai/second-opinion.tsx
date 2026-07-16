@@ -11,8 +11,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 
 export default function SecondOpinionScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
 
     const [diagnosis, setDiagnosis] = useState("");
@@ -34,7 +37,7 @@ export default function SecondOpinionScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>AI Second Opinion</Text>
                 <View style={{ width: 38 }} />
@@ -57,7 +60,7 @@ export default function SecondOpinionScreen() {
                         <TextInput
                             style={styles.textInput}
                             placeholder="e.g. Primary Hypertension, High Cholesterol"
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={colors.textSecondary}
                             value={diagnosis}
                             onChangeText={setDiagnosis}
                         />
@@ -68,7 +71,7 @@ export default function SecondOpinionScreen() {
                         <TextInput
                             style={[styles.textInput, styles.textArea]}
                             placeholder="e.g. Lisinopril 10mg daily, low-sodium diet, brisk walk 30 mins daily"
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor={colors.textSecondary}
                             multiline
                             numberOfLines={3}
                             value={treatment}
@@ -156,10 +159,10 @@ export default function SecondOpinionScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -167,9 +170,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -180,7 +183,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
@@ -210,13 +213,13 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
     formCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderRadius: 24,
         marginHorizontal: 20,
         marginTop: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     inputWrapper: {
         marginBottom: 16,
@@ -224,18 +227,18 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#64748B",
+        color: colors.textSecondary,
         marginBottom: 6,
     },
     textInput: {
         borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         borderRadius: 12,
         paddingHorizontal: 14,
         paddingVertical: 10,
         fontSize: 14,
-        color: "#334155",
-        backgroundColor: "#F8FAFC",
+        color: isDark ? colors.textSecondary : "#334155",
+        backgroundColor: colors.background,
     },
     textArea: {
         height: 80,
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     loadingCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         padding: 20,
         borderRadius: 20,
@@ -265,17 +268,17 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 12,
-        color: "#64748B",
+        color: colors.textSecondary,
         fontWeight: "500",
     },
     resultsCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         marginTop: 20,
         borderRadius: 24,
         padding: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
     },
     resultHeader: {
         flexDirection: "row",
@@ -285,7 +288,7 @@ const styles = StyleSheet.create({
     resultTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginLeft: 8,
     },
     alignmentBadge: {
@@ -309,29 +312,29 @@ const styles = StyleSheet.create({
     sectionHeading: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 8,
         marginTop: 14,
     },
     sectionSubText: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginBottom: 10,
     },
     protocolBox: {
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
         borderRadius: 14,
         padding: 12,
     },
     protocolText: {
         fontSize: 12,
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         lineHeight: 18,
         marginBottom: 8,
     },
     protocolBullet: {
         fontSize: 11,
-        color: "#475569",
+        color: colors.textSecondary,
         lineHeight: 16,
         marginBottom: 4,
         paddingLeft: 4,
@@ -359,7 +362,7 @@ const styles = StyleSheet.create({
         lineHeight: 14,
         marginTop: 20,
         borderTopWidth: 1,
-        borderTopColor: "#F1F5F9",
+        borderTopColor: colors.divider,
         paddingTop: 12,
     },
 });

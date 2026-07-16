@@ -10,9 +10,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "@/utils/themeManager";
 import { mockReports, ReportData } from "@/utils/mockReportsData";
 
 export default function ReportAIScreen() {
+    const { colors, isDark } = useTheme();
+    const styles = createStyles(colors, isDark);
     const router = useRouter();
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
     const [analyzing, setAnalyzing] = useState(false);
@@ -44,7 +47,7 @@ export default function ReportAIScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Report Explainer AI</Text>
                 <View style={{ width: 38 }} />
@@ -206,10 +209,10 @@ export default function ReportAIScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: "row",
@@ -217,9 +220,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         height: 60,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
     },
     headerBtn: {
         width: 38,
@@ -230,18 +233,18 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#071739",
+        color: colors.text,
     },
     scrollContent: {
         paddingBottom: 40,
     },
     uploadCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         marginTop: 20,
         borderRadius: 20,
         borderWidth: 2,
-        borderColor: "#BFDBFE",
+        borderColor: isDark ? "rgba(37, 99, 235, 0.3)" : "#BFDBFE",
         borderStyle: "dashed",
         padding: 24,
         alignItems: "center",
@@ -253,12 +256,12 @@ const styles = StyleSheet.create({
     uploadTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#1E3A8A",
+        color: isDark ? colors.text : "#1E3A8A",
         marginTop: 10,
     },
     uploadSubtitle: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 4,
     },
     uploadLoading: {
@@ -284,9 +287,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     pillChip: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: colors.cardBorder,
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 14,
@@ -299,13 +302,13 @@ const styles = StyleSheet.create({
     pillChipText: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#475569",
+        color: colors.textSecondary,
     },
     pillChipTextActive: {
         color: "#FFFFFF",
     },
     analyzingCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         padding: 20,
         borderRadius: 20,
@@ -313,11 +316,11 @@ const styles = StyleSheet.create({
     },
     analyzingText: {
         fontSize: 13,
-        color: "#64748B",
+        color: colors.textSecondary,
         fontWeight: "500",
     },
     explanationCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         borderRadius: 24,
         padding: 20,
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 16,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: colors.divider,
         paddingBottom: 12,
     },
     headerText: {
@@ -341,11 +344,11 @@ const styles = StyleSheet.create({
     reportTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
     },
     reportDate: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 2,
     },
     verdictBox: {
@@ -360,14 +363,14 @@ const styles = StyleSheet.create({
     },
     verdictDesc: {
         fontSize: 12,
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
         marginTop: 6,
         lineHeight: 18,
     },
     cardSectionTitle: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#0F172A",
+        color: colors.text,
         marginBottom: 12,
     },
     paramRow: {
@@ -385,11 +388,11 @@ const styles = StyleSheet.create({
     paramName: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#334155",
+        color: isDark ? colors.textSecondary : "#334155",
     },
     paramReason: {
         fontSize: 11,
-        color: "#64748B",
+        color: colors.textSecondary,
         marginTop: 2,
         lineHeight: 14,
     },
@@ -420,7 +423,7 @@ const styles = StyleSheet.create({
     },
     tipText: {
         fontSize: 12,
-        color: "#475569",
+        color: colors.textSecondary,
         lineHeight: 16,
         flex: 1,
     },
@@ -440,7 +443,7 @@ const styles = StyleSheet.create({
         marginRight: 6,
     },
     emptyExplain: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.card,
         marginHorizontal: 20,
         borderRadius: 20,
         padding: 30,
@@ -450,12 +453,12 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#475569",
+        color: colors.textSecondary,
         marginTop: 12,
     },
     emptySubtitle: {
         fontSize: 12,
-        color: "#64748B",
+        color: colors.textSecondary,
         textAlign: "center",
         marginTop: 6,
         lineHeight: 18,

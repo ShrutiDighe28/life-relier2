@@ -13,101 +13,12 @@ import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "@/utils/themeManager";
 import { Header } from "@/components/dashboard";
+import { useAppointments } from "@/context/AppointmentsContext";
+import { Alert } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-interface Appointment {
-    id: string;
-    doctorName: string;
-    specialty: string;
-    tag: string;
-    tagColor: string;
-    tagBg: string;
-    specialtyIcon: string;
-    specialtyColor: string;
-    date: string;
-    clinic: string;
-    insurance: string;
-    avatar?: any;
-    hasVideo?: boolean;
-}
-
-interface HistoryItem {
-    id: string;
-    doctorName: string;
-    specialty: string;
-    specialtyColor: string;
-    date: string;
-    clinic: string;
-    avatar?: any;
-}
-
-const upcomingAppointments: Appointment[] = [
-    {
-        id: "1",
-        doctorName: "Dr. James Anderson",
-        specialty: "Cardiologist",
-        tag: "In 2 Days",
-        tagColor: "#2563EB",
-        tagBg: "#EFF6FF",
-        specialtyIcon: "heart-pulse",
-        specialtyColor: "#2563EB",
-        date: "May 14, 2024 • 10:30 AM",
-        clinic: "HeartCare Clinic, New York, NY",
-        insurance: "Aetna Insurance",
-        avatar: require("@/assets/images/dashboard/doctor.png"),
-        hasVideo: true,
-    },
-    {
-        id: "2",
-        doctorName: "Dr. Sarah Thompson",
-        specialty: "General Physician",
-        tag: "In 6 Days",
-        tagColor: "#166534",
-        tagBg: "#E8F5E9",
-        specialtyIcon: "stethoscope",
-        specialtyColor: "#166534",
-        date: "May 18, 2024 • 02:00 PM",
-        clinic: "CityCare Hospital, New York, NY",
-        insurance: "HealthShield Insurance",
-        avatar: require("@/assets/images/dashboard/doctor.png"),
-    },
-    {
-        id: "3",
-        doctorName: "Dr. Michael Lee",
-        specialty: "Dermatologist",
-        tag: "In 12 Days",
-        tagColor: "#B45309",
-        tagBg: "#FEF3C7",
-        specialtyIcon: "flower-outline",
-        specialtyColor: "#B45309",
-        date: "May 24, 2024 • 11:15 AM",
-        clinic: "Skin & You Clinic, New York, NY",
-        insurance: "HealthShield Insurance",
-        avatar: require("@/assets/images/dashboard/doctor.png"),
-    },
-];
-
-const historyItems: HistoryItem[] = [
-    {
-        id: "h1",
-        doctorName: "Dr. David Walker",
-        specialty: "Orthopedic Surgeon",
-        specialtyColor: "#166534",
-        date: "Apr 30, 2024 • 09:30 AM",
-        clinic: "CityCare Hospital, New York, NY",
-        avatar: require("@/assets/images/dashboard/doctor.png"),
-    },
-    {
-        id: "h2",
-        doctorName: "Dr. Emily Roberts",
-        specialty: "Neurologist",
-        specialtyColor: "#9333EA",
-        date: "Apr 22, 2024 • 01:15 PM",
-        clinic: "NeuroLife Clinic, New York, NY",
-        avatar: require("@/assets/images/dashboard/doctor.png"),
-    },
-];
+// Using Context for data instead of hardcoded lists
 
 // Helper to draw the custom grid of May 2024 calendar
 const renderCalendarDays = (colors: any) => {
@@ -147,7 +58,7 @@ const renderCalendarDays = (colors: any) => {
         cells.push(
             <View key={`day-${day}`} style={styles.calendarCell}>
                 <View style={[styles.calendarCellDay, activeStyle]}>
-                    <Text style={[styles.calendarCellDayText, { color: colors.text }, textStyle]}>{day}</Text>
+                    <Text style={[styles.calendarCellDayText, { color: activeStyle ? textStyle?.color : colors.text }]}>{day}</Text>
                 </View>
                 {showDot && <View style={[styles.calendarDot, { backgroundColor: dotColor }]} />}
             </View>
@@ -160,6 +71,18 @@ const renderCalendarDays = (colors: any) => {
 export default function AppointmentsScreen() {
     const router = useRouter();
     const { colors, isDark } = useTheme();
+    const { upcomingAppointments, historyItems, aiRemindersOn, toggleAiReminders, cancelAppointment } = useAppointments();
+
+    const handleCancel = (id: string) => {
+        Alert.alert(
+            "Cancel Appointment",
+            "Are you sure you want to cancel this appointment?",
+            [
+                { text: "No, Keep", style: "cancel" },
+                { text: "Yes, Cancel", style: "destructive", onPress: () => cancelAppointment(id) }
+            ]
+        );
+    };
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
@@ -192,77 +115,93 @@ export default function AppointmentsScreen() {
                             <Text style={[styles.columnHeading, { color: colors.text }]}>Upcoming Appointments</Text>
                         </View>
 
-                        {upcomingAppointments.map((app) => (
-                            <View key={app.id} style={[styles.upcomingCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-                                <View style={[styles.cardHeader, { borderBottomColor: colors.divider }]}>
-                                    <Image source={app.avatar} style={styles.doctorAvatar} />
-                                    <View style={styles.doctorInfo}>
-                                        <View style={[styles.tag, { backgroundColor: app.tagBg }]}>
-                                            <Text style={[styles.tagText, { color: app.tagColor }]}>
-                                                {app.tag}
-                                            </Text>
-                                        </View>
-                                        <View style={styles.nameRow}>
-                                            <Text style={[styles.doctorName, { color: colors.text }]}>
-                                                {app.doctorName}{' '}
-                                                <MaterialCommunityIcons name={"check-decagram" as any} size={14} color="#2563EB" />
-                                            </Text>
-                                        </View>
-                                        <View style={styles.specialtyRow}>
-                                            <MaterialCommunityIcons name={app.specialtyIcon as any} size={14} color={app.specialtyColor} />
-                                            <Text style={[styles.specialtyText, { color: app.specialtyColor }]}>
-                                                {app.specialty}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                </View>
-
-                                {/* Card details row list */}
-                                <View style={styles.cardDetails}>
-                                    <View style={styles.detailRow}>
-                                        <MaterialCommunityIcons name="calendar-clock" size={14} color={colors.textSecondary} />
-                                        <Text style={[styles.detailText, { color: colors.textSecondary }]}>{app.date}</Text>
-                                    </View>
-                                    <View style={styles.detailRow}>
-                                        <MaterialCommunityIcons name="map-marker-outline" size={14} color={colors.textSecondary} />
-                                        <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{app.clinic}</Text>
-                                    </View>
-                                    <View style={styles.detailRow}>
-                                        <MaterialCommunityIcons name="shield-check-outline" size={14} color={colors.textSecondary} />
-                                        <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{app.insurance}</Text>
-                                    </View>
-                                </View>
-
-                                {/* Video Consult Action */}
-                                {app.hasVideo && (
-                                    <TouchableOpacity
-                                        style={styles.videoConsultBtn}
-                                        onPress={() => router.push("/appointments/consultation")}
-                                    >
-                                        <MaterialCommunityIcons name="video-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-                                        <Text style={styles.videoConsultBtnText}>Join Video Consultation</Text>
-                                    </TouchableOpacity>
-                                )}
-
-                                {/* Outline Action Buttons Row */}
-                                <View style={styles.cardActionsRow}>
-                                    <TouchableOpacity style={styles.cardActionOutlineBtn}>
-                                        <MaterialCommunityIcons name="calendar-edit" size={12} color="#2563EB" style={{ marginRight: 2 }} />
-                                        <Text style={styles.actionBtnTextBlue} numberOfLines={1} ellipsizeMode="tail">Reschedule</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={[styles.cardActionOutlineBtn, { borderColor: "#EF4444" }]}>
-                                        <MaterialCommunityIcons name="close-circle-outline" size={12} color="#EF4444" style={{ marginRight: 2 }} />
-                                        <Text style={styles.actionBtnTextRed} numberOfLines={1} ellipsizeMode="tail">Cancel Appointment</Text>
-                                    </TouchableOpacity>
-                                </View>
+                        {upcomingAppointments.length === 0 ? (
+                            <View style={[styles.emptyStateCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                                <MaterialCommunityIcons name="calendar-blank-outline" size={48} color={colors.textSecondary} />
+                                <Text style={[styles.emptyStateTitle, { color: colors.text }]}>No Upcoming Appointments</Text>
+                                <Text style={[styles.emptyStateDesc, { color: colors.textSecondary }]}>You have no scheduled visits.</Text>
                             </View>
-                        ))}
+                        ) : (
+                            upcomingAppointments.map((app) => (
+                                <View key={app.id} style={[styles.upcomingCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                                    <View style={[styles.cardHeader, { borderBottomColor: colors.divider }]}>
+                                        <Image source={app.avatar} style={styles.doctorAvatar} />
+                                        <View style={styles.doctorInfo}>
+                                            {app.tag && (
+                                                <View style={[styles.tag, { backgroundColor: app.tagBg }]}>
+                                                    <Text style={[styles.tagText, { color: app.tagColor }]}>
+                                                        {app.tag}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            <View style={styles.nameRow}>
+                                                <Text style={[styles.doctorName, { color: colors.text }]}>
+                                                    {app.doctorName}{' '}
+                                                    <MaterialCommunityIcons name={"check-decagram" as any} size={14} color="#2563EB" />
+                                                </Text>
+                                            </View>
+                                            <View style={styles.specialtyRow}>
+                                                <MaterialCommunityIcons name={app.specialtyIcon as any} size={14} color={app.specialtyColor} />
+                                                <Text style={[styles.specialtyText, { color: app.specialtyColor }]}>
+                                                    {app.specialty}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    {/* Card details row list */}
+                                    <View style={styles.cardDetails}>
+                                        <View style={styles.detailRow}>
+                                            <MaterialCommunityIcons name="calendar-clock" size={14} color={colors.textSecondary} />
+                                            <Text style={[styles.detailText, { color: colors.textSecondary }]}>{app.date}</Text>
+                                        </View>
+                                        <View style={styles.detailRow}>
+                                            <MaterialCommunityIcons name="map-marker-outline" size={14} color={colors.textSecondary} />
+                                            <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{app.clinic}</Text>
+                                        </View>
+                                        <View style={styles.detailRow}>
+                                            <MaterialCommunityIcons name="shield-check-outline" size={14} color={colors.textSecondary} />
+                                            <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{app.insurance}</Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Video Consult Action */}
+                                    {app.hasVideo && (
+                                        <TouchableOpacity
+                                            style={styles.videoConsultBtn}
+                                            onPress={() => router.push("/appointments/consultation")}
+                                        >
+                                            <MaterialCommunityIcons name="video-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                                            <Text style={styles.videoConsultBtnText}>Join Video Consultation</Text>
+                                        </TouchableOpacity>
+                                    )}
+
+                                    {/* Outline Action Buttons Row */}
+                                    <View style={styles.cardActionsRow}>
+                                        <TouchableOpacity 
+                                            style={styles.cardActionOutlineBtn}
+                                            onPress={() => router.push(`/appointments/book?rescheduleId=${app.id}`)}
+                                        >
+                                            <MaterialCommunityIcons name="calendar-edit" size={12} color="#2563EB" style={{ marginRight: 2 }} />
+                                            <Text style={styles.actionBtnTextBlue} numberOfLines={1} ellipsizeMode="tail">Reschedule</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity 
+                                            style={[styles.cardActionOutlineBtn, { borderColor: "#EF4444" }]}
+                                            onPress={() => handleCancel(app.id)}
+                                        >
+                                            <MaterialCommunityIcons name="close-circle-outline" size={12} color="#EF4444" style={{ marginRight: 2 }} />
+                                            <Text style={styles.actionBtnTextRed} numberOfLines={1} ellipsizeMode="tail">Cancel</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))
+                        )}
                     </View>
 
                     {/* Right Column: Calendar Widget & AI Reminder (45% width) */}
                     <View style={styles.rightCol}>
                         <View style={styles.colHeaderRow}>
-                            <Text style={styles.columnHeading}>View Calendar</Text>
+                            <Text style={[styles.columnHeading, { color: colors.text }]}>View Calendar</Text>
                             <TouchableOpacity onPress={() => router.push("/appointments/calendar")}>
                                 <MaterialCommunityIcons name="calendar-month-outline" size={18} color="#2563EB" />
                             </TouchableOpacity>
@@ -310,25 +249,27 @@ export default function AppointmentsScreen() {
                         </View>
 
                         {/* AI Reminders Card */}
-                        <View style={styles.aiRemindersCard}>
+                        <View style={[styles.aiRemindersCard, isDark && { backgroundColor: '#1E293B', borderColor: '#334155' }]}>
                             <View style={styles.aiRemindersHeader}>
                                 <View style={styles.bellBadgeIcon}>
-                                    <MaterialCommunityIcons name="bell-outline" size={18} color="#FFFFFF" />
+                                    <MaterialCommunityIcons name={aiRemindersOn ? "bell-ring-outline" : "bell-off-outline"} size={18} color="#FFFFFF" />
                                 </View>
-                                <Text style={styles.aiRemindersTitle}>AI Appointment Reminder</Text>
+                                <Text style={[styles.aiRemindersTitle, isDark && { color: '#60A5FA' }]}>AI Appointment Reminder</Text>
                             </View>
-                            <Text style={styles.aiRemindersDesc}>
+                            <Text style={[styles.aiRemindersDesc, isDark && { color: '#94A3B8' }]}>
                                 AI will remind you before your appointments and help you prepare better.
                             </Text>
                             
-                            <View style={styles.aiReminderStatus}>
-                                <MaterialCommunityIcons name="clock-check-outline" size={16} color="#10B981" />
-                                <Text style={styles.aiStatusText}>Reminders On</Text>
+                            <View style={[styles.aiReminderStatus, isDark && { backgroundColor: '#0F172A' }]}>
+                                <MaterialCommunityIcons name={aiRemindersOn ? "clock-check-outline" : "clock-remove-outline"} size={16} color={aiRemindersOn ? "#10B981" : "#EF4444"} />
+                                <Text style={[styles.aiStatusText, { color: aiRemindersOn ? "#10B981" : "#EF4444" }]}>
+                                    {aiRemindersOn ? 'Reminders On' : 'Reminders Off'}
+                                </Text>
                             </View>
 
-                            <TouchableOpacity style={styles.manageRemindersBtn}>
-                                <Text style={styles.manageRemindersText}>Manage Reminders</Text>
-                                <MaterialCommunityIcons name="chevron-right" size={14} color="#2563EB" />
+                            <TouchableOpacity style={styles.manageRemindersBtn} onPress={toggleAiReminders}>
+                                <Text style={[styles.manageRemindersText, isDark && { color: '#60A5FA' }]}>Manage Reminders</Text>
+                                <MaterialCommunityIcons name="chevron-right" size={14} color={isDark ? "#60A5FA" : "#2563EB"} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -352,25 +293,33 @@ export default function AppointmentsScreen() {
                             <View style={styles.historyLeft}>
                                 <View style={styles.avatarCheckmarkWrapper}>
                                     <Image source={item.avatar} style={styles.historyAvatar} />
+                                {item.status === 'completed' ? (
                                     <View style={styles.checkmarkBadge}>
                                         <MaterialCommunityIcons name="check" size={10} color="#FFFFFF" />
                                     </View>
-                                </View>
-
-                                <View style={styles.historyMeta}>
-                                    <Text style={[styles.historyDoctorName, { color: colors.text }]}>{item.doctorName}</Text>
-                                    <Text style={[styles.historySpecialtyText, { color: item.specialtyColor }]}>
-                                        {item.specialty}
-                                    </Text>
-                                    <Text style={[styles.historyDate, { color: colors.textSecondary }]}>{item.date}</Text>
-                                    <Text style={[styles.historyClinic, { color: colors.textSecondary }]}>{item.clinic}</Text>
-                                </View>
+                                ) : (
+                                    <View style={[styles.checkmarkBadge, { backgroundColor: "#EF4444" }]}>
+                                        <MaterialCommunityIcons name="close" size={10} color="#FFFFFF" />
+                                    </View>
+                                )}
                             </View>
 
-                            <View style={styles.historyRight}>
-                                <View style={styles.completedBadge}>
-                                    <Text style={styles.completedBadgeText}>Completed</Text>
-                                </View>
+                            <View style={styles.historyMeta}>
+                                <Text style={[styles.historyDoctorName, { color: colors.text }]}>{item.doctorName}</Text>
+                                <Text style={[styles.historySpecialtyText, { color: item.specialtyColor }]}>
+                                    {item.specialty}
+                                </Text>
+                                <Text style={[styles.historyDate, { color: colors.textSecondary }]}>{item.date}</Text>
+                                <Text style={[styles.historyClinic, { color: colors.textSecondary }]}>{item.clinic}</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.historyRight}>
+                            <View style={[styles.completedBadge, item.status === 'cancelled' && { backgroundColor: '#FEE2E2' }]}>
+                                <Text style={[styles.completedBadgeText, item.status === 'cancelled' && { color: '#EF4444' }]}>
+                                    {item.status === 'completed' ? 'Completed' : 'Cancelled'}
+                                </Text>
+                            </View>
                                 <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} style={{ marginLeft: 8 }} />
                             </View>
                         </TouchableOpacity>
@@ -624,6 +573,28 @@ const styles = StyleSheet.create({
         color: "#EF4444",
         fontSize: 9,
         fontWeight: "700",
+    },
+    emptyStateCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        padding: 24,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+        marginBottom: 16,
+    },
+    emptyStateTitle: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#0F172A",
+        marginTop: 12,
+        marginBottom: 4,
+    },
+    emptyStateDesc: {
+        fontSize: 11,
+        color: "#64748B",
+        textAlign: "center",
     },
     calendarWidget: {
         backgroundColor: "#FFFFFF",

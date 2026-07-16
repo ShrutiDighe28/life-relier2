@@ -8,17 +8,22 @@ import {
     Dimensions,
     ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { mockReports, ReportParameter } from "@/utils/mockReportsData";
+import { useTheme } from "@/utils/themeManager";
+import { useAuth } from "@/context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
 export default function ReportDetailsScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
+    const { colors, isDark } = useTheme();
+    const insets = useSafeAreaInsets();
+    const { user } = useAuth();
 
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
@@ -30,10 +35,10 @@ export default function ReportDetailsScreen() {
 
     if (!report) {
         return (
-            <SafeAreaView style={styles.errorContainer}>
+            <SafeAreaView style={[styles.errorContainer, { backgroundColor: colors.background }]}>
                 <MaterialCommunityIcons name="alert-circle-outline" size={64} color="#EF4444" />
-                <Text style={styles.errorText}>Report not found</Text>
-                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+                <Text style={[styles.errorText, { color: colors.textSecondary }]}>Report not found</Text>
+                <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.primary }]} onPress={() => router.back()}>
                     <Text style={styles.backBtnText}>Go Back</Text>
                 </TouchableOpacity>
             </SafeAreaView>
@@ -54,7 +59,6 @@ export default function ReportDetailsScreen() {
         const { minNormal, maxNormal, currentValue, status } = param;
         
         // Map the current value to a percentage (0% to 100%)
-        // Let's assume the scale range is from: minNormal - (range * 0.5) to maxNormal + (range * 0.5)
         const range = maxNormal - minNormal;
         const scaleMin = minNormal - range * 0.3;
         const scaleMax = maxNormal + range * 0.3;
@@ -76,11 +80,11 @@ export default function ReportDetailsScreen() {
                 {/* Horizontal Bar */}
                 <View style={styles.gaugeTrack}>
                     {/* Low zone */}
-                    <View style={[styles.gaugeSegment, { backgroundColor: "#FFEBCD", flex: 3 }]} />
+                    <View style={[styles.gaugeSegment, { backgroundColor: isDark ? "#451A03" : "#FFEBCD", flex: 3 }]} />
                     {/* Normal zone */}
-                    <View style={[styles.gaugeSegment, { backgroundColor: "#DCFCE7", flex: 4 }]} />
+                    <View style={[styles.gaugeSegment, { backgroundColor: isDark ? "#064E3B" : "#DCFCE7", flex: 4 }]} />
                     {/* High zone */}
-                    <View style={[styles.gaugeSegment, { backgroundColor: "#FEE2E2", flex: 3 }]} />
+                    <View style={[styles.gaugeSegment, { backgroundColor: isDark ? "#7F1D1D" : "#FEE2E2", flex: 3 }]} />
                 </View>
                 
                 {/* Gauge Indicator Pin */}
@@ -91,29 +95,29 @@ export default function ReportDetailsScreen() {
 
                 {/* Range Labels */}
                 <View style={styles.gaugeLabelsRow}>
-                    <Text style={styles.gaugeLabelText}>Low</Text>
-                    <Text style={styles.gaugeLabelTextVal}>{minNormal} (Min)</Text>
-                    <Text style={styles.gaugeLabelTextVal}>{maxNormal} (Max)</Text>
-                    <Text style={styles.gaugeLabelText}>High</Text>
+                    <Text style={[styles.gaugeLabelText, { color: colors.textSecondary }]}>Low</Text>
+                    <Text style={[styles.gaugeLabelTextVal, { color: colors.textSecondary }]}>{minNormal} (Min)</Text>
+                    <Text style={[styles.gaugeLabelTextVal, { color: colors.textSecondary }]}>{maxNormal} (Max)</Text>
+                    <Text style={[styles.gaugeLabelText, { color: colors.textSecondary }]}>High</Text>
                 </View>
             </View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
             {/* Top Toolbar Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.divider }]}>
                 <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color="#071739" />
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Report Details</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Report Details</Text>
                 <View style={styles.headerRightActions}>
                     <TouchableOpacity
                         style={styles.headerBtn}
                         onPress={() => router.push(`/reports/report-share?id=${report.id}`)}
                     >
-                        <MaterialCommunityIcons name="share-variant-outline" size={22} color="#071739" />
+                        <MaterialCommunityIcons name="share-variant-outline" size={22} color={colors.text} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.headerBtn}
@@ -121,63 +125,65 @@ export default function ReportDetailsScreen() {
                         disabled={isDownloading}
                     >
                         {isDownloading ? (
-                            <ActivityIndicator size="small" color="#2563EB" />
+                            <ActivityIndicator size="small" color={colors.primary} />
                         ) : (
                             <MaterialCommunityIcons
                                 name={downloaded ? "check" : "download-outline"}
                                 size={22}
-                                color={downloaded ? "#10B981" : "#071739"}
+                                color={downloaded ? "#10B981" : colors.text}
                             />
                         )}
                     </TouchableOpacity>
                 </View>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <ScrollView style={{ backgroundColor: colors.background }} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Report Info Card */}
-                <View style={styles.infoCard}>
+                <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
                     <View style={styles.infoCardHeader}>
                         <MaterialCommunityIcons
                             name={report.type === "Pathology" ? "flask-outline" : report.type === "Radiology" ? "lungs" : "heart-pulse"}
                             size={24}
-                            color="#2563EB"
+                            color={colors.primary}
                         />
-                        <Text style={styles.infoCardTitle}>{report.title}</Text>
+                        <Text style={[styles.infoCardTitle, { color: colors.text }]}>{report.title}</Text>
                     </View>
 
                     <View style={styles.gridContainer}>
                         <View style={styles.gridRow}>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>Patient Name</Text>
-                                <Text style={styles.gridValue}>{report.patientInfo.name}</Text>
-                            </View>
-                            <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>Patient ID</Text>
-                                <Text style={styles.gridValue}>{report.patientInfo.id}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.gridRow}>
-                            <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>Age & Gender</Text>
-                                <Text style={styles.gridValue}>
-                                    {report.patientInfo.age} Yrs / {report.patientInfo.gender}
+                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>Patient Name</Text>
+                                <Text style={[styles.gridValue, { color: colors.text }]}>
+                                    {user?.fullName || report.patientInfo.name}
                                 </Text>
                             </View>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>Referred By</Text>
-                                <Text style={styles.gridValue}>{report.patientInfo.refDoctor}</Text>
+                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>Patient ID</Text>
+                                <Text style={[styles.gridValue, { color: colors.text }]}>{report.patientInfo.id}</Text>
                             </View>
                         </View>
 
                         <View style={styles.gridRow}>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>Collection Date</Text>
-                                <Text style={styles.gridValue}>{report.patientInfo.collectionDate}</Text>
+                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>Age & Gender</Text>
+                                <Text style={[styles.gridValue, { color: colors.text }]}>
+                                    {user?.age || report.patientInfo.age} Yrs / {user?.gender || report.patientInfo.gender}
+                                </Text>
                             </View>
                             <View style={styles.gridCol}>
-                                <Text style={styles.gridLabel}>Report Date</Text>
-                                <Text style={styles.gridValue}>{report.patientInfo.reportDate}</Text>
+                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>Referred By</Text>
+                                <Text style={[styles.gridValue, { color: colors.text }]}>{report.patientInfo.refDoctor}</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.gridRow}>
+                            <View style={styles.gridCol}>
+                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>Collection Date</Text>
+                                <Text style={[styles.gridValue, { color: colors.text }]}>{report.patientInfo.collectionDate}</Text>
+                            </View>
+                            <View style={styles.gridCol}>
+                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>Report Date</Text>
+                                <Text style={[styles.gridValue, { color: colors.text }]}>{report.patientInfo.reportDate}</Text>
                             </View>
                         </View>
                     </View>
@@ -186,7 +192,7 @@ export default function ReportDetailsScreen() {
                 {/* Parameters Section (for Pathology) */}
                 {report.parameters && report.parameters.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Lab Parameters & Results</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Lab Parameters & Results</Text>
                         
                         {report.parameters.map((param, index) => {
                             // Text indicator color
@@ -198,11 +204,11 @@ export default function ReportDetailsScreen() {
                             }
 
                             return (
-                                <View key={index} style={styles.parameterCard}>
+                                <View key={index} style={[styles.parameterCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                                     <View style={styles.parameterHeader}>
                                         <View>
-                                            <Text style={styles.parameterName}>{param.name}</Text>
-                                            <Text style={styles.parameterRange}>
+                                            <Text style={[styles.parameterName, { color: colors.text }]}>{param.name}</Text>
+                                            <Text style={[styles.parameterRange, { color: colors.textSecondary }]}>
                                                 Reference Range: {param.refRange} {param.unit}
                                             </Text>
                                         </View>
@@ -210,7 +216,7 @@ export default function ReportDetailsScreen() {
                                             <Text style={[styles.parameterValue, { color: badgeColor }]}>
                                                 {param.value}
                                             </Text>
-                                            <Text style={styles.parameterUnit}>{param.unit}</Text>
+                                            <Text style={[styles.parameterUnit, { color: colors.textSecondary }]}>{param.unit}</Text>
                                         </View>
                                     </View>
 
@@ -225,12 +231,12 @@ export default function ReportDetailsScreen() {
                 {/* Findings Section (for Radiology & ECG) */}
                 {report.findings && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Medical Findings & Impression</Text>
-                        <View style={styles.findingsCard}>
-                            <Text style={styles.findingsText}>{report.findings}</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Medical Findings & Impression</Text>
+                        <View style={[styles.findingsCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                            <Text style={[styles.findingsText, { color: colors.text }]}>{report.findings}</Text>
                             <View style={styles.findingsFooter}>
                                 <MaterialCommunityIcons name="checkbox-marked-circle-outline" size={18} color="#10B981" />
-                                <Text style={styles.findingsFooterText}>Verified by Clinical Radiologist / Cardiologist</Text>
+                                <Text style={[styles.findingsFooterText, { color: colors.textSecondary }]}>Verified by Clinical Radiologist / Cardiologist</Text>
                             </View>
                         </View>
                     </View>
@@ -239,30 +245,30 @@ export default function ReportDetailsScreen() {
                 {/* AI Medical Insights */}
                 <View style={styles.section}>
                     <LinearGradient
-                        colors={["#F0FDF4", "#DCFCE7"]}
-                        style={styles.aiInsightsCard}
+                        colors={isDark ? ["#064E3B", "#022C22"] : ["#F0FDF4", "#DCFCE7"]}
+                        style={[styles.aiInsightsCard, isDark && { borderWidth: 1, borderColor: colors.cardBorder }]}
                     >
                         <View style={styles.aiInsightsHeader}>
-                            <View style={styles.aiRobotWrapper}>
-                                <MaterialCommunityIcons name="robot" size={20} color="#166534" />
+                            <View style={[styles.aiRobotWrapper, { backgroundColor: isDark ? "#064E3B" : "#DCFCE7" }]}>
+                                <MaterialCommunityIcons name="robot" size={20} color={isDark ? "#34D399" : "#166534"} />
                             </View>
                             <View>
-                                <Text style={styles.aiInsightsTitle}>AI Medical Insights</Text>
-                                <Text style={styles.aiInsightsSubtitle}>Generated summary by LifeRelier AI assistant</Text>
+                                <Text style={[styles.aiInsightsTitle, { color: isDark ? colors.text : "#14532D" }]}>AI Medical Insights</Text>
+                                <Text style={[styles.aiInsightsSubtitle, { color: isDark ? colors.textSecondary : "#15803D" }]}>Generated summary by LifeRelier AI assistant</Text>
                             </View>
                         </View>
 
                         <View style={styles.aiBulletList}>
                             {report.aiInsights.map((insight, idx) => (
                                 <View key={idx} style={styles.aiBulletRow}>
-                                    <View style={styles.aiBulletDot} />
-                                    <Text style={styles.aiBulletText}>{insight}</Text>
+                                    <View style={[styles.aiBulletDot, { backgroundColor: isDark ? "#34D399" : "#15803D" }]} />
+                                    <Text style={[styles.aiBulletText, { color: isDark ? colors.text : "#1B4332" }]}>{insight}</Text>
                                 </View>
                             ))}
                         </View>
 
                         <TouchableOpacity
-                            style={styles.aiActionButton}
+                            style={[styles.aiActionButton, { backgroundColor: isDark ? colors.primary : "#15803D" }]}
                             onPress={() => router.push("/(tabs)/aihub")}
                         >
                             <MaterialCommunityIcons name="chat-processing-outline" size={18} color="#FFFFFF" />
@@ -273,29 +279,29 @@ export default function ReportDetailsScreen() {
 
                 {/* Doctor Recommendations */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Physician's Consultation Notes</Text>
-                    <View style={styles.doctorNotesCard}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Physician&apos;s Consultation Notes</Text>
+                    <View style={[styles.doctorNotesCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                         <View style={styles.doctorNotesHeader}>
-                            <MaterialCommunityIcons name="doctor" size={24} color="#64748B" />
-                            <Text style={styles.doctorNotesAuthor}>{report.patientInfo.refDoctor}</Text>
+                            <MaterialCommunityIcons name="doctor" size={24} color={colors.textSecondary} />
+                            <Text style={[styles.doctorNotesAuthor, { color: colors.text }]}>{report.patientInfo.refDoctor}</Text>
                         </View>
-                        <Text style={styles.doctorNotesText}>"{report.doctorNotes}"</Text>
+                        <Text style={[styles.doctorNotesText, { color: colors.textSecondary }]}>&quot;{report.doctorNotes}&quot;</Text>
                     </View>
                 </View>
             </ScrollView>
 
             {/* Quick Actions Bottom Bar */}
-            <View style={styles.bottomBar}>
+            <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.divider, paddingBottom: Math.max(insets.bottom, 14) }]}>
                 <TouchableOpacity
-                    style={styles.bottomBtnOutline}
+                    style={[styles.bottomBtnOutline, { borderColor: colors.primary }]}
                     onPress={() => router.push(`/reports/report-viewer?id=${report.id}`)}
                 >
-                    <MaterialCommunityIcons name="file-pdf-box" size={20} color="#2563EB" />
-                    <Text style={styles.bottomBtnOutlineText}>Print / View PDF</Text>
+                    <MaterialCommunityIcons name="file-pdf-box" size={20} color={colors.primary} />
+                    <Text style={[styles.bottomBtnOutlineText, { color: colors.primary }]}>Print / View PDF</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={styles.bottomBtnSolid}
+                    style={[styles.bottomBtnSolid, { backgroundColor: colors.primary }]}
                     onPress={() => router.push(`/reports/report-share?id=${report.id}`)}
                 >
                     <MaterialCommunityIcons name="share-variant" size={20} color="#FFFFFF" />

@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/utils/themeManager";
+import { useAppointments } from "@/context/AppointmentsContext";
 
 export default function AppointmentCard() {
+    const router = useRouter();
+    const { upcomingAppointments } = useAppointments();
     const slideAnim = useMemo(() => new Animated.Value(20), []);
     const fadeAnim = useMemo(() => new Animated.Value(0), []);
     const { colors, isDark } = useTheme();
@@ -15,6 +19,27 @@ export default function AppointmentCard() {
         ]).start();
     }, [fadeAnim, slideAnim]);
 
+    if (!upcomingAppointments || upcomingAppointments.length === 0) {
+        return null;
+    }
+
+    const upcomingApp = upcomingAppointments[0];
+    const [datePart, timePart] = upcomingApp.date.split(" • ");
+    const [month, dayYear] = datePart.split(" ");
+    const day = dayYear.replace(",", "");
+    
+    let dayText = "DAY";
+    try {
+        const dateObj = new Date(datePart);
+        if (!isNaN(dateObj.getTime())) {
+            dayText = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+        }
+    } catch (e) {}
+
+    const handleNavigate = () => {
+        router.push(`/appointments/appointment-details?id=${upcomingApp.id}`);
+    };
+
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Appointment</Text>
@@ -22,32 +47,32 @@ export default function AppointmentCard() {
             <TouchableOpacity
                 activeOpacity={0.9}
                 style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: isDark ? 1 : 0 }]}
-                onPress={() => console.log("Navigate to Appointment Details")}
+                onPress={handleNavigate}
             >
                 <View style={[styles.dateBox, { borderColor: colors.cardBorder }]}>
                     <View style={styles.dateMonth}>
-                        <Text style={styles.monthText}>MAY</Text>
+                        <Text style={styles.monthText}>{month.toUpperCase()}</Text>
                     </View>
                     <View style={[styles.dateDay, { backgroundColor: colors.backgroundSecondary }]}>
-                        <Text style={[styles.dayNum, { color: colors.text }]}>24</Text>
-                        <Text style={[styles.dayText, { color: colors.textSecondary }]}>FRI</Text>
+                        <Text style={[styles.dayNum, { color: colors.text }]}>{day}</Text>
+                        <Text style={[styles.dayText, { color: colors.textSecondary }]}>{dayText}</Text>
                     </View>
                 </View>
 
                 <View style={styles.info}>
-                    <Text style={[styles.doctorName, { color: colors.text }]}>Dr. Ananya Sharma</Text>
-                    <Text style={[styles.speciality, { color: colors.textSecondary }]}>Cardiologist</Text>
+                    <Text style={[styles.doctorName, { color: colors.text }]}>{upcomingApp.doctorName}</Text>
+                    <Text style={[styles.speciality, { color: colors.textSecondary }]}>{upcomingApp.specialty}</Text>
                     <View style={styles.detailsRow}>
                         <MaterialCommunityIcons name="clock-outline" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.detailText, { color: colors.textSecondary }]}>10:30 AM</Text>
+                        <Text style={[styles.detailText, { color: colors.textSecondary }]}>{timePart}</Text>
                         <MaterialCommunityIcons name="map-marker-outline" size={14} color={colors.textSecondary} style={{ marginLeft: 10 }} />
-                        <Text style={[styles.detailText, { color: colors.textSecondary }]}>LifeRelier Clinic, Mumbai</Text>
+                        <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{upcomingApp.clinic.split(',')[0]}</Text>
                     </View>
                 </View>
 
                 <TouchableOpacity
                     style={styles.actionBtn}
-                    onPress={() => console.log("Navigate to Appointment Details (Button)")}
+                    onPress={handleNavigate}
                 >
                     <Text style={styles.actionText}>View Details</Text>
                 </TouchableOpacity>

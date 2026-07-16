@@ -124,7 +124,7 @@ export default function AIHubScreen() {
                             Smart tools powered by AI to help you understand, analyze & improve your health.
                         </Text>
                     </View>
-                    <View style={styles.brainIconWrapper}>
+                    <View style={[styles.brainIconWrapper, { backgroundColor: isDark ? colors.card : "#EFF6FF" }]}>
                         <MaterialCommunityIcons name="brain" size={54} color="#2563EB" />
                     </View>
                 </View>
@@ -136,7 +136,7 @@ export default function AIHubScreen() {
                     onPress={() => router.push("/ai/assistant")}
                 >
                     <LinearGradient
-                        colors={["#EFF6FF", "#DBEAFE"]}
+                        colors={isDark ? [colors.card, "#1E293B"] : ["#EFF6FF", "#DBEAFE"]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.heroGradient}
@@ -146,8 +146,8 @@ export default function AIHubScreen() {
                                 <MaterialCommunityIcons name={"sparkles" as any} size={24} color="#FFFFFF" />
                             </View>
                             <View style={styles.heroTextContainer}>
-                                <Text style={styles.heroTitle}>Your AI Health Companion</Text>
-                                <Text style={styles.heroSubtitle}>
+                                <Text style={[styles.heroTitle, { color: isDark ? colors.text : "#1E3A8A" }]}>Your AI Health Companion</Text>
+                                <Text style={[styles.heroSubtitle, { color: isDark ? colors.secondary : "#2563EB" }]}>
                                     Get personalized insights, explanations and recommendations in simple terms.
                                 </Text>
                             </View>
@@ -163,30 +163,36 @@ export default function AIHubScreen() {
                 </TouchableOpacity>
 
                 {/* AI Powered Tools Section Title */}
-                <Text style={styles.sectionTitle}>AI Powered Tools</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>AI Powered Tools</Text>
 
                 {/* Grid list of Tools (2 Columns) */}
                 <View style={styles.toolsGrid}>
                     {aiTools.map((tool) => (
                         <TouchableOpacity
                             key={tool.id}
-                            style={styles.toolCard}
+                            style={[
+                                styles.toolCard,
+                                {
+                                    backgroundColor: colors.card,
+                                    borderColor: colors.cardBorder,
+                                },
+                            ]}
                             activeOpacity={0.8}
                             onPress={() => router.push(tool.route as any)}
                         >
                             {/* Card Header Row */}
                             <View style={styles.cardHeaderRow}>
-                                <View style={[styles.toolIconWrapper, { backgroundColor: tool.bgColor }]}>
+                                <View style={[styles.toolIconWrapper, { backgroundColor: isDark ? tool.color + "1A" : tool.bgColor }]}>
                                     <MaterialCommunityIcons name={tool.icon as any} size={24} color={tool.color} />
                                 </View>
-                                <MaterialCommunityIcons name="chevron-right" size={18} color="#94A3B8" />
+                                <MaterialCommunityIcons name="chevron-right" size={18} color={isDark ? colors.textSecondary : "#94A3B8"} />
                             </View>
 
                             {/* Card Content */}
-                            <Text style={styles.toolCardTitle} numberOfLines={2}>
+                            <Text style={[styles.toolCardTitle, { color: colors.text }]} numberOfLines={2}>
                                 {tool.title}
                             </Text>
-                            <Text style={styles.toolCardDescription} numberOfLines={3}>
+                            <Text style={[styles.toolCardDescription, { color: colors.textSecondary }]} numberOfLines={3}>
                                 {tool.description}
                             </Text>
                         </TouchableOpacity>
@@ -194,14 +200,14 @@ export default function AIHubScreen() {
                 </View>
 
                 {/* Secure Trust Banner at the Bottom */}
-                <View style={styles.secureBanner}>
+                <View style={[styles.secureBanner, { backgroundColor: isDark ? colors.card : "#EFF6FF", borderColor: isDark ? colors.cardBorder : "#DBEAFE" }]}>
                     <View style={styles.secureLeft}>
-                        <View style={styles.secureIconWrapper}>
+                        <View style={[styles.secureIconWrapper, { backgroundColor: isDark ? colors.background : "#FFFFFF" }]}>
                             <MaterialCommunityIcons name="shield-lock" size={22} color="#2563EB" />
                         </View>
                         <View style={styles.secureTextWrapper}>
-                            <Text style={styles.secureTitle}>Your data is safe and secure</Text>
-                            <Text style={styles.secureSubtitle}>
+                            <Text style={[styles.secureTitle, { color: isDark ? colors.text : "#1E3A8A" }]}>Your data is safe and secure</Text>
+                            <Text style={[styles.secureSubtitle, { color: isDark ? colors.textSecondary : "#475569" }]}>
                                 We use advanced encryption to keep your health information confidential.
                             </Text>
                         </View>
