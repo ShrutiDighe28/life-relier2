@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { generateOtp, storeOtp, verifyOtp as verifyStoredOtp, clearOtp } from '../utils/otpHelper';
-import { sendOtpToUser } from '../services/otpDeliveryService';
+import { sendOtpToUser, verifyOtpOnServer } from '../services/otpDeliveryService';
 
 export interface AuthUser {
   fullName: string;
@@ -102,45 +101,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
     }
 
-    const otp = generateOtp();
-    if (userObj && userObj.email) {
-      await storeOtp(userObj.email.toLowerCase(), otp);
-    }
-    if (userObj && userObj.mobile) {
-      await storeOtp(userObj.mobile, otp);
-    }
-    if (contact && (!userObj || (contact !== userObj.email && contact !== userObj.mobile))) {
-      await storeOtp(contact, otp);
-    }
+    // Delivery OTP to registered email & phone securely via backend API
+    const emailToUse = userObj?.email || contact;
+    const mobileToUse = userObj?.mobile || contact;
     
-    // Delivery OTP to registered email & phone securely
-    await sendOtpToUser(
-      userObj?.email || contact,
-      userObj?.mobile || contact,
-      otp
-    );
+    await sendOtpToUser(emailToUse, mobileToUse);
     
     setPendingUser(userObj);
   };
 
   const verifyOtp = async (contact: string, code: string) => {
-    const valid = await verifyStoredOtp(contact, code);
-    if (valid && pendingUser) {
+    const result = await verifyOtpOnServer(contact, code);
+    
+    if (result.success && pendingUser) {
       // Mark the account as verified before persisting
       const verifiedUser: AuthUser = { ...pendingUser, isVerified: true };
       await persistUser(verifiedUser);
-      if (verifiedUser.email) {
-        await clearOtp(verifiedUser.email.toLowerCase());
-      }
-      if (verifiedUser.mobile) {
-        await clearOtp(verifiedUser.mobile);
-      }
+      
       // Log the user in automatically after successful registration
       setUser(verifiedUser);
       await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(verifiedUser));
       setPendingUser(null);
     }
-    return valid;
+    return result.success;
   };
 
   const clearPending = () => {

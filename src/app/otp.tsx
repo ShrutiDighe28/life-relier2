@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     TextInput,
     Image,
+    ActivityIndicator,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,6 +24,7 @@ export default function OtpScreen() {
 
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
     const [errorMsg, setErrorMsg] = useState("");
+    const [loading, setLoading] = useState(false);
     const inputs = useRef<TextInput[]>([]);
 
     const [seconds, setSeconds] = useState(30);
@@ -74,7 +76,10 @@ export default function OtpScreen() {
             return;
         }
 
+        setLoading(true);
         const success = await verifyOtp(pendingUser.email.toLowerCase(), code);
+        setLoading(false);
+        
         if (success) {
             router.replace("/create-profile");
         } else {
@@ -89,11 +94,15 @@ export default function OtpScreen() {
             setTimeout(() => router.replace("/register"), 1500);
             return;
         }
+        
+        setLoading(true);
         try {
             await requestOtp(pendingUser.email.toLowerCase(), pendingUser);
             setSeconds(30);
         } catch {
             setErrorMsg("Failed to resend OTP. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -252,19 +261,23 @@ export default function OtpScreen() {
                         style={styles.button}
                     >
                         <View style={styles.buttonContent}>
+                            {loading ? (
+                                <ActivityIndicator color="#FFFFFF" size="small" />
+                            ) : (
+                                <>
+                                    <Text style={styles.buttonText}>
+                                        Verify OTP
+                                    </Text>
 
-                            <Text style={styles.buttonText}>
-                                Verify OTP
-                            </Text>
-
-                            <View style={styles.arrowCircle}>
-                                <MaterialCommunityIcons
-                                    name="arrow-right"
-                                    size={24}
-                                    color="#2563EB"
-                                />
-                            </View>
-
+                                    <View style={styles.arrowCircle}>
+                                        <MaterialCommunityIcons
+                                            name="arrow-right"
+                                            size={24}
+                                            color="#2563EB"
+                                        />
+                                    </View>
+                                </>
+                            )}
                         </View>
                     </LinearGradient>
                 </TouchableOpacity>

@@ -14,6 +14,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Header } from "@/components/dashboard";
 import { useTheme } from "@/utils/themeManager";
 import { useAuth } from "@/context/AuthContext";
+import { useHealth, HealthMetrics } from "@/context/HealthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -28,48 +29,7 @@ interface Metric {
     statusColor: string;
 }
 
-const healthMetrics: Metric[] = [
-    {
-        label: "Heart Rate",
-        value: "64 bpm",
-        status: "Normal",
-        icon: "heart-pulse",
-        iconColor: "#EF4444",
-        iconBg: "#FEE2E2",
-        statusBg: "#FEE2E2",
-        statusColor: "#EF4444",
-    },
-    {
-        label: "Steps (Today)",
-        value: "7,842",
-        status: "Goal: 10,000",
-        icon: "run",
-        iconColor: "#2563EB",
-        iconBg: "#EFF6FF",
-        statusBg: "#EFF6FF",
-        statusColor: "#2563EB",
-    },
-    {
-        label: "Sleep (Avg)",
-        value: "7h 32m",
-        status: "Good",
-        icon: "weather-night",
-        iconColor: "#10B981",
-        iconBg: "#E8F5E9",
-        statusBg: "#E8F5E9",
-        statusColor: "#10B981",
-    },
-    {
-        label: "Weight",
-        value: "72 kg",
-        status: "Healthy",
-        icon: "scale-bathroom",
-        iconColor: "#D97706",
-        iconBg: "#FFF3E0",
-        statusBg: "#FEF3C7",
-        statusColor: "#B45309",
-    },
-];
+// Dynamic mapping of health metrics happens inside the component now
 
 interface NavigationItem {
     label: string;
@@ -170,6 +130,50 @@ export default function ProfileScreen() {
     const router = useRouter();
     const { colors, isDark } = useTheme();
     const { user, logout } = useAuth();
+    const { metrics } = useHealth();
+    
+    const displayMetrics: Metric[] = [
+        {
+            label: "Heart Rate",
+            value: metrics.heartRate,
+            status: metrics.heartRate === "-- bpm" ? "No Data" : "Logged",
+            icon: "heart-pulse",
+            iconColor: "#EF4444",
+            iconBg: "#FEE2E2",
+            statusBg: "#FEE2E2",
+            statusColor: "#EF4444",
+        },
+        {
+            label: "Steps (Today)",
+            value: metrics.steps,
+            status: metrics.steps === "0" ? "No Data" : "Active",
+            icon: "run",
+            iconColor: "#2563EB",
+            iconBg: "#EFF6FF",
+            statusBg: "#EFF6FF",
+            statusColor: "#2563EB",
+        },
+        {
+            label: "Sleep (Avg)",
+            value: metrics.sleep,
+            status: metrics.sleep === "--h --m" ? "No Data" : "Logged",
+            icon: "weather-night",
+            iconColor: "#10B981",
+            iconBg: "#E8F5E9",
+            statusBg: "#E8F5E9",
+            statusColor: "#10B981",
+        },
+        {
+            label: "Weight",
+            value: metrics.weight,
+            status: metrics.weight === "-- kg" ? "No Data" : "Logged",
+            icon: "scale-bathroom",
+            iconColor: "#D97706",
+            iconBg: "#FFF3E0",
+            statusBg: "#FEF3C7",
+            statusColor: "#B45309",
+        },
+    ];
 
     const handleNavigate = async (route: string) => {
         if (route === "/login") {
@@ -299,7 +303,7 @@ export default function ProfileScreen() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.metricsSlider}
                 >
-                    {healthMetrics.map((met, idx) => (
+                    {displayMetrics.map((met, idx) => (
                         <View key={idx} style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                             <View style={[styles.metricIconBg, { backgroundColor: met.iconBg }]}>
                                 <MaterialCommunityIcons name={met.icon as any} size={22} color={met.iconColor} />

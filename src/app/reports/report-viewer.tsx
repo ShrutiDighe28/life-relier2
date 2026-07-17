@@ -11,7 +11,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { mockReports, ReportData } from "@/utils/mockReportsData";
+import { useReports, ReportData } from "@/context/ReportsContext";
 import { useAuth } from "@/context/AuthContext";
 
 const { width } = Dimensions.get("window");
@@ -27,10 +27,24 @@ export default function ReportViewerScreen() {
     const [downloading, setDownloading] = useState(false);
     const [statusText, setStatusText] = useState<string | null>(null);
 
-    // Find current report
+    const { reports } = useReports();
+
+    // Find current report from the user's personal report store
     const report = useMemo(() => {
-        return mockReports.find((r) => r.id === id) || mockReports[0];
-    }, [id]);
+        return reports.find((r) => r.id === id) || null;
+    }, [reports, id]);
+
+    if (!report) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: '#525659', justifyContent: 'center', alignItems: 'center' }]} edges={['top']}>
+                <MaterialCommunityIcons name="file-alert-outline" size={64} color="#94A3B8" />
+                <Text style={{ color: '#CBD5E1', fontSize: 16, marginTop: 12, fontWeight: '600' }}>Report Not Found</Text>
+                <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16, backgroundColor: '#2563EB', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 }}>
+                    <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Go Back</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
 
     const handleZoomIn = () => {
         if (zoomLevel < 150) setZoomLevel((prev) => prev + 10);

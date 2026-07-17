@@ -35,11 +35,7 @@ export default function HomeScreen() {
             >
                 <Header />
 
-                <Greeting
-                    userName={firstName}
-                    greeting="Good Morning"
-                    subtitle="Here's your health summary for today."
-                />
+                <Greeting />
 
                 <AIAssistantCard />
 

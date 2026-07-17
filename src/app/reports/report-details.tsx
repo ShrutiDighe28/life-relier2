@@ -12,7 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useRouter, useLocalSearchParams } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
-import { mockReports, ReportParameter } from "@/utils/mockReportsData";
+import { useReports, ReportParameter } from "@/context/ReportsContext";
 import { useTheme } from "@/utils/themeManager";
 import { useAuth } from "@/context/AuthContext";
 
@@ -28,10 +28,12 @@ export default function ReportDetailsScreen() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
 
-    // Find the report
+    const { reports } = useReports();
+
+    // Find the report from the user's personal report store
     const report = useMemo(() => {
-        return mockReports.find((r) => r.id === id) || mockReports[0];
-    }, [id]);
+        return reports.find((r) => r.id === id) || null;
+    }, [reports, id]);
 
     if (!report) {
         return (
